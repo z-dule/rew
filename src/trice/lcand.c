@@ -98,7 +98,7 @@ static bool trice_lcand_recv_handler(struct ice_lcand *lcand,
 }
 
 
-int trice_add_candidate(struct ice_lcand **candp,
+int trice_add_lcandidate(struct ice_lcand **candp,
 		       struct trice *icem, struct list *lst,
 		       unsigned compid, char *foundation, int proto,
 		       uint32_t prio, const struct sa *addr,
@@ -226,7 +226,7 @@ int trice_add_local_candidate(struct ice_lcand **lcandp, struct trice *icem,
 		}
 	}
 
-	err = trice_add_candidate(&lcand, icem, &icem->lcandl, compid, NULL,
+	err = trice_add_lcandidate(&lcand, icem, &icem->lcandl, compid, NULL,
 				 proto, prio, addr, type, tcptype);
 	if (err)
 		return err;

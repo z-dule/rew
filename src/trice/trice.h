@@ -105,7 +105,7 @@ struct ice_conncheck {
 
 
 /* cand */
-int trice_add_candidate(struct ice_lcand **candp,
+int trice_add_lcandidate(struct ice_lcand **candp,
 			struct trice *icem, struct list *lst,
 			unsigned compid, char *foundation, int proto,
 			uint32_t prio, const struct sa *addr,

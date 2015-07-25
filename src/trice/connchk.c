@@ -98,6 +98,10 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 	unsigned compid = pair->lcand->attr.compid;
 	int err;
 
+	if (!icem || !pair) {
+		DEBUG_WARNING("handle_success: invalid params\n");
+	}
+
 	if (!trice_find_local_candidate(icem, compid,
 				       pair->lcand->attr.proto, mapped_addr)) {
 
@@ -107,7 +111,7 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 
 		prio = ice_cand_calc_prio(ICE_CAND_TYPE_PRFLX, 0, compid);
 
-		err = trice_add_candidate(&lcand, icem, &icem->lcandl, compid,
+		err = trice_add_lcandidate(&lcand, icem, &icem->lcandl, compid,
 					 "FND", pair->lcand->attr.proto,
 					 prio, mapped_addr,
 					 ICE_CAND_TYPE_PRFLX,
@@ -170,6 +174,10 @@ static void stunc_resp_handler(int err, uint16_t scode, const char *reason,
 	struct stun_attr *attr;
 	bool success = (err == 0) && (scode == 0);
 	(void)reason;
+
+	if (!icem) {
+		DEBUG_WARNING("stun response: no icem\n");
+	}
 
 	if (cc->term)
 		return;
@@ -453,6 +461,7 @@ int trice_conncheck_trigged(struct trice *icem, struct ice_candpair *pair,
 	if (!cc)
 		return ENOMEM;
 
+	cc->icem = icem;
 	cc->pair = pair;
 	cc->use_cand = use_cand;
 
