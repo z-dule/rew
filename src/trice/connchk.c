@@ -49,7 +49,7 @@ static void pair_established(struct trice *icem, struct ice_candpair *pair)
 
 		if (!conn) {
 			/* todo: Hack to grab TCPCONN */
-			conn = ice_conn_find(&icem->connl,
+			conn = trice_conn_find(&icem->connl,
 					     pair->lcand->attr.compid,
 					     &pair->lcand->attr.addr,
 					     &pair->rcand->attr.addr);
@@ -203,7 +203,7 @@ static void stunc_resp_handler(int err, uint16_t scode, const char *reason,
 		break;
 
 	case 487: /* Role Conflict */
-		ice_switch_local_role(icem);
+		trice_switch_local_role(icem);
 		(void)trice_conncheck_send(icem, pair, cc->use_cand);
 		break;
 
@@ -222,7 +222,7 @@ static void stunc_resp_handler(int err, uint16_t scode, const char *reason,
 }
 
 
-int ice_conncheck_stun_request(struct ice_checklist *ic,
+int trice_conncheck_stun_request(struct ice_checklist *ic,
 			       struct ice_conncheck *cc,
 			       struct ice_candpair *cp, void *sock,
 			       bool cc_use_cand)
@@ -360,24 +360,24 @@ int trice_conncheck_send(struct trice *icem, struct ice_candpair *pair,
 	switch (pair->lcand->attr.proto) {
 
 	case IPPROTO_UDP:
-		err = ice_conncheck_stun_request(ic, cc, pair,
+		err = trice_conncheck_stun_request(ic, cc, pair,
 						 lcand->us, use_cand);
 		if (err)
 			goto out;
 		break;
 
 	case IPPROTO_TCP:
-		conn = ice_conn_find(&icem->connl, lcand->attr.compid,
+		conn = trice_conn_find(&icem->connl, lcand->attr.compid,
 				     &pair->lcand->attr.addr,
 				     &pair->rcand->attr.addr);
 		if (conn) {
 			trice_printf(icem, "TCP-connection"
 				    " already exist [%H]\n",
-				    ice_conn_debug, conn);
+				    trice_conn_debug, conn);
 
 			pair->conn = mem_ref(conn);  /* todo: */
 
-			err = ice_conncheck_stun_request(ic, cc, pair,
+			err = trice_conncheck_stun_request(ic, cc, pair,
 							 conn->tc, use_cand);
 			if (err)
 				goto out;
@@ -388,14 +388,14 @@ int trice_conncheck_send(struct trice *icem, struct ice_candpair *pair,
 
 		case ICE_TCP_ACTIVE:
 		case ICE_TCP_SO:
-			err = ice_conn_alloc(&icem->connl, icem,
+			err = trice_conn_alloc(&icem->connl, icem,
 					     lcand->attr.compid, true,
 					     &lcand->attr.addr,
 					     &pair->rcand->attr.addr,
 					     lcand->ts, lcand->layer,
 					     tcpconn_frame_handler, lcand);
 			if (err) {
-				DEBUG_NOTICE("ice_conn_alloc to"
+				DEBUG_NOTICE("trice_conn_alloc to"
 					      " %J failed (%m)\n",
 					      &pair->rcand->attr.addr, err);
 				goto out;
@@ -459,7 +459,7 @@ int trice_conncheck_trigged(struct trice *icem, struct ice_candpair *pair,
 	if (pair->state < ICE_CANDPAIR_INPROGRESS)
 		trice_candpair_set_state(pair, ICE_CANDPAIR_INPROGRESS);
 
-	err = ice_conncheck_stun_request(icem->checklist, cc,
+	err = trice_conncheck_stun_request(icem->checklist, cc,
 					 pair, sock, use_cand);
 	if (err)
 		goto out;
@@ -476,7 +476,7 @@ int trice_conncheck_trigged(struct trice *icem, struct ice_candpair *pair,
 }
 
 
-int ice_conncheck_debug(struct re_printf *pf, const struct ice_conncheck *cc)
+int trice_conncheck_debug(struct re_printf *pf, const struct ice_conncheck *cc)
 {
 	if (!cc)
 		return 0;

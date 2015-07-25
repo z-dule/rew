@@ -148,7 +148,7 @@ int  trice_checklist_start(struct trice *icem, const struct stun_conf *conf,
 enum ice_checkl_state trice_checklist_state(const struct trice *icem);
 const char    *ice_checkl_state2name(enum ice_checkl_state cst);
 struct stun *trice_stun(struct trice *icem);
-bool ice_checklist_iscompleted(const struct trice *icem);
+bool trice_checklist_iscompleted(const struct trice *icem);
 
 
 /* ICE Conncheck */

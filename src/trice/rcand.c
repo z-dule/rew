@@ -114,7 +114,7 @@ int trice_add_remote_candidate(struct ice_rcand **rcandp, struct trice *icem,
 		goto out;
 
 	/* pair this remote-candidate with all existing local-candidates */
-	err = ice_candpair_with_remote(icem, rcand);
+	err = trice_candpair_with_remote(icem, rcand);
 	if (err)
 		goto out;
 

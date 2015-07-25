@@ -49,7 +49,7 @@ static void tcp_conn_handler(const struct sa *peer, void *arg)
 		    trice_cand_print, lcand, peer);
 #endif
 
-	err = ice_conn_alloc(&lcand->icem->connl, lcand->icem,
+	err = trice_conn_alloc(&lcand->icem->connl, lcand->icem,
 			     lcand->attr.compid, false,
 			     &lcand->attr.addr, peer, lcand->ts, lcand->layer,
 			     tcpconn_frame_handler, lcand);
@@ -88,7 +88,7 @@ static int compute_foundation(struct ice_lcand *cand,
 }
 
 
-static bool ice_cand_recv_handler(struct ice_lcand *lcand,
+static bool trice_lcand_recv_handler(struct ice_lcand *lcand,
 				  int proto, void *sock, const struct sa *src,
 				  struct mbuf *mb, void *arg)
 {
@@ -132,7 +132,7 @@ int trice_add_candidate(struct ice_lcand **candp,
 	cand->icem = icem;
 	list_append(lst, &cand->le, cand);
 
-	cand->recvh = ice_cand_recv_handler;
+	cand->recvh = trice_lcand_recv_handler;
 	cand->arg = icem;
 
  out:
@@ -338,7 +338,7 @@ int trice_add_local_candidate(struct ice_lcand **lcandp, struct trice *icem,
 		lcand->base_addr = lcand->attr.addr;
 
 	/* pair this local-candidate with all existing remote-candidates */
-	err = ice_candpair_with_local(icem, lcand);
+	err = trice_candpair_with_local(icem, lcand);
 	if (err)
 		goto out;
 

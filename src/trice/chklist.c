@@ -116,7 +116,7 @@ enum ice_checkl_state trice_checklist_state(const struct trice *icem)
 /* If all of the pairs in the check list are now either in the Failed or
    Succeeded state:
  */
-bool ice_checklist_iscompleted(const struct trice *icem)
+bool trice_checklist_iscompleted(const struct trice *icem)
 {
 	struct le *le;
 
@@ -227,7 +227,7 @@ int trice_checklist_update(struct trice *icem)
 	if (!ic)
 		return ENOSYS;
 
-	if (ice_checklist_iscompleted(icem)) {
+	if (trice_checklist_iscompleted(icem)) {
 
 		if (list_isempty(&icem->validl)) {
 			ic->state = ICE_CHECKLIST_FAILED;
@@ -243,7 +243,7 @@ int trice_checklist_update(struct trice *icem)
 }
 
 
-int ice_checklist_debug(struct re_printf *pf, const struct ice_checklist *ic)
+int trice_checklist_debug(struct re_printf *pf, const struct ice_checklist *ic)
 {
 	struct le *le;
 	int err = 0;
@@ -258,7 +258,7 @@ int ice_checklist_debug(struct re_printf *pf, const struct ice_checklist *ic)
 	for (le = ic->conncheckl.head; le; le = le->next) {
 		struct ice_conncheck *cc = le->data;
 
-		err |= re_hprintf(pf, " ...%H\n", ice_conncheck_debug, cc);
+		err |= re_hprintf(pf, " ...%H\n", trice_conncheck_debug, cc);
 	}
 
 	err |= stun_debug(pf, ic->stun);

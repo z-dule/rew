@@ -199,7 +199,7 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 
 	if (remote_controlling == icem->controlling) {
 		if (icem->tiebrk >= tiebrk)
-			ice_switch_local_role(icem);
+			trice_switch_local_role(icem);
 		else
 			goto conflict;
 	}

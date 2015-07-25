@@ -173,7 +173,7 @@ int trice_debug(struct re_printf *pf, const struct trice *icem)
 			  trice_candpairs_debug, &icem->validl);
 
 	if (icem->checklist)
-		err |= ice_checklist_debug(pf, icem->checklist);
+		err |= trice_checklist_debug(pf, icem->checklist);
 
 	err |= re_hprintf(pf, " TCP Connections: (%u)\n",
 			  list_count(&icem->connl));
@@ -182,7 +182,7 @@ int trice_debug(struct re_printf *pf, const struct trice *icem)
 		struct ice_tcpconn *conn = le->data;
 
 		err |= re_hprintf(pf, "      %H\n",
-				  ice_conn_debug, conn);
+				  trice_conn_debug, conn);
 	}
 
 	return err;
@@ -267,7 +267,7 @@ void trice_tracef(struct trice *icem, const char *fmt, ...)
 }
 
 
-void ice_switch_local_role(struct trice *ice)
+void trice_switch_local_role(struct trice *ice)
 {
 	if (!ice)
 		return;

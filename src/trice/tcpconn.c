@@ -76,7 +76,7 @@ static void tcp_estab_handler(void *arg)
 			/* todo: */
 			pair->conn = mem_ref(conn);
 
-			err = ice_conncheck_stun_request(icem->checklist, cc,
+			err = trice_conncheck_stun_request(icem->checklist, cc,
 							 pair, conn->tc,
 							 cc->use_cand);
 			if (err) {
@@ -148,7 +148,7 @@ static void conn_destructor(void *arg)
 
 
 /* ts: only for accept */
-int ice_conn_alloc(struct list *connl, struct trice *icem, unsigned compid,
+int trice_conn_alloc(struct list *connl, struct trice *icem, unsigned compid,
 		   bool active, const struct sa *laddr, const struct sa *peer,
 		   struct tcp_sock *ts, int layer,
 		   tcpconn_frame_h *frameh, void *arg)
@@ -238,7 +238,7 @@ int ice_conn_alloc(struct list *connl, struct trice *icem, unsigned compid,
 
 
 /* NOTE: laddr matching is SA_ADDR only */
-struct ice_tcpconn *ice_conn_find(struct list *connl, unsigned compid,
+struct ice_tcpconn *trice_conn_find(struct list *connl, unsigned compid,
 				  const struct sa *laddr,
 				  const struct sa *peer)
 {
@@ -264,7 +264,7 @@ struct ice_tcpconn *ice_conn_find(struct list *connl, unsigned compid,
 }
 
 
-int ice_conn_debug(struct re_printf *pf, const struct ice_tcpconn *conn)
+int trice_conn_debug(struct re_printf *pf, const struct ice_tcpconn *conn)
 {
 	int err;
 

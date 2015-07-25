@@ -127,8 +127,8 @@ bool trice_candpair_cmp_fnd(const struct ice_candpair *cp1,
 struct ice_candpair *trice_candpair_find(const struct list *lst,
 					const struct ice_lcand *lcand,
 					const struct ice_rcand *rcand);
-int  ice_candpair_with_local(struct trice *icem, struct ice_lcand *lcand);
-int  ice_candpair_with_remote(struct trice *icem, struct ice_rcand *rcand);
+int  trice_candpair_with_local(struct trice *icem, struct ice_lcand *lcand);
+int  trice_candpair_with_remote(struct trice *icem, struct ice_rcand *rcand);
 const char    *ice_candpair_state2name(enum ice_candpair_state st);
 
 
@@ -139,38 +139,39 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 
 
 /* ICE media */
-void ice_switch_local_role(struct trice *ice);
+void trice_switch_local_role(struct trice *ice);
 void trice_printf(struct trice *icem, const char *fmt, ...);
 void trice_tracef(struct trice *icem, const char *fmt, ...);
 
 
 /* ICE checklist */
-int ice_checklist_debug(struct re_printf *pf, const struct ice_checklist *ic);
+int  trice_checklist_debug(struct re_printf *pf,
+			   const struct ice_checklist *ic);
 void trice_conncheck_schedule_check(struct trice *icem);
-int trice_checklist_update(struct trice *icem);
+int  trice_checklist_update(struct trice *icem);
 
 
 /* ICE conncheck */
-int ice_conncheck_stun_request(struct ice_checklist *ic,
+int trice_conncheck_stun_request(struct ice_checklist *ic,
 			       struct ice_conncheck *cc,
 			       struct ice_candpair *cp, void *sock,
 			       bool cc_use_cand);
 int trice_conncheck_trigged(struct trice *icem, struct ice_candpair *pair,
 			   void *sock, bool use_cand);
-int ice_conncheck_debug(struct re_printf *pf, const struct ice_conncheck *cc);
+int trice_conncheck_debug(struct re_printf *pf, const struct ice_conncheck *cc);
 
 
 /* TCP connections */
 
 
-int ice_conn_alloc(struct list *connl, struct trice *icem, unsigned compid,
+int trice_conn_alloc(struct list *connl, struct trice *icem, unsigned compid,
 		   bool active, const struct sa *laddr, const struct sa *peer,
 		   struct tcp_sock *ts, int layer,
 		   tcpconn_frame_h *frameh, void *arg);
-struct ice_tcpconn *ice_conn_find(struct list *connl, unsigned compid,
+struct ice_tcpconn *trice_conn_find(struct list *connl, unsigned compid,
 				  const struct sa *laddr,
 				  const struct sa *peer);
-int ice_conn_debug(struct re_printf *pf, const struct ice_tcpconn *conn);
+int trice_conn_debug(struct re_printf *pf, const struct ice_tcpconn *conn);
 
 
 bool trice_stun_process(struct trice *icem, struct ice_lcand *lcand,

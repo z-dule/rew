@@ -375,7 +375,7 @@ static struct ice_candpair *find_same_base(struct trice *icem,
 
 
 /* Pair a candidate with all other candidates of the opposite kind */
-int ice_candpair_with_local(struct trice *icem, struct ice_lcand *lcand)
+int trice_candpair_with_local(struct trice *icem, struct ice_lcand *lcand)
 {
 	struct list *lst = &icem->rcandl;
 	struct le *le;
@@ -421,7 +421,7 @@ int ice_candpair_with_local(struct trice *icem, struct ice_lcand *lcand)
 
 
 /* Pair a candidate with all other candidates of the opposite kind */
-int ice_candpair_with_remote(struct trice *icem, struct ice_rcand *rcand)
+int trice_candpair_with_remote(struct trice *icem, struct ice_rcand *rcand)
 {
 	struct list *lst = &icem->lcandl;
 	struct le *le;
