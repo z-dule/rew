@@ -90,13 +90,13 @@ typedef void (ice_failed_h)(int err, uint16_t scode,
 			    struct ice_candpair *pair, void *arg);
 
 
-int trice_alloc(struct trice **icemp, const struct trice_conf *conf,
-	       bool controlling, const char *lufrag, const char *lpwd);
-int trice_set_remote_ufrag(struct trice *icem, const char *rufrag);
-int trice_set_remote_pwd(struct trice *icem, const char *rpwd);
-struct trice_conf *trice_conf(struct trice *icem);
+int  trice_alloc(struct trice **icemp, const struct trice_conf *conf,
+		 bool controlling, const char *lufrag, const char *lpwd);
+int  trice_set_remote_ufrag(struct trice *icem, const char *rufrag);
+int  trice_set_remote_pwd(struct trice *icem, const char *rpwd);
 bool trice_is_controlling(const struct trice *icem);
-int trice_debug(struct re_printf *pf, const struct trice *icem);
+int  trice_debug(struct re_printf *pf, const struct trice *icem);
+struct trice_conf *trice_conf(struct trice *icem);
 
 
 /* Candidates (common) */
@@ -106,29 +106,24 @@ const char        *ice_tcptype_name(enum ice_tcptype tcptype);
 
 
 /* Local candidates */
-struct list *trice_lcandl(const struct trice *icem);
-int trice_add_local_candidate(struct ice_lcand **lcandp, struct trice *icem,
-			     unsigned compid, int proto,
-			     uint32_t prio, const struct sa *addr,
-			     const struct sa *base_addr,
-			     enum ice_cand_type type,
-			     enum ice_tcptype tcptype,
-			     void *sock, int layer);
-struct ice_lcand *trice_find_local_candidate(struct trice *icem,
-				     unsigned compid, int proto,
-				     const struct sa *addr);
+int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
+		    unsigned compid, int proto, uint32_t prio,
+		    const struct sa *addr, const struct sa *base_addr,
+		    enum ice_cand_type type, enum ice_tcptype tcptype,
+		    void *sock, int layer);
+struct list      *trice_lcandl(const struct trice *icem);
+struct ice_lcand *trice_lcand_find(struct trice *icem, unsigned compid,
+				   int proto, const struct sa *addr);
 
 
 /* Remote candidate */
 struct list *trice_rcandl(const struct trice *icem);
-int trice_add_remote_candidate(struct ice_rcand **rcandp, struct trice *icem,
-			      unsigned compid, const char *foundation,
-			      int proto, uint32_t prio,
-			      const struct sa *addr, enum ice_cand_type type,
-			      enum ice_tcptype tcptype);
-struct ice_rcand *trice_find_remote_candidate(struct trice *icem,
-					     unsigned compid, int proto,
-					     const struct sa *addr);
+int trice_rcand_add(struct ice_rcand **rcandp, struct trice *icem,
+		    unsigned compid, const char *foundation, int proto,
+		    uint32_t prio, const struct sa *addr,
+		    enum ice_cand_type type, enum ice_tcptype tcptype);
+struct ice_rcand *trice_rcand_find(struct trice *icem, unsigned compid,
+				   int proto, const struct sa *addr);
 
 
 /* ICE Candidate pairs */

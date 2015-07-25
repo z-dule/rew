@@ -55,15 +55,15 @@ static int handle_stun_full(struct trice *icem, struct ice_lcand *lcand,
 
 	tcptype_rev = ice_tcptype_reverse(lcand->attr.tcptype);
 
-	rcand = trice_find_remote_candidate(icem, lcand->attr.compid,
-					   lcand->attr.proto, src);
+	rcand = trice_rcand_find(icem, lcand->attr.compid,
+				 lcand->attr.proto, src);
 	if (!rcand) {
 
-		err = trice_add_remote_candidate(&rcand, icem,
-						lcand->attr.compid,
-						"444", lcand->attr.proto, prio,
-						src, ICE_CAND_TYPE_PRFLX,
-						tcptype_rev);
+		err = trice_rcand_add(&rcand, icem,
+				      lcand->attr.compid,
+				      "444", lcand->attr.proto, prio,
+				      src, ICE_CAND_TYPE_PRFLX,
+				      tcptype_rev);
 		if (err)
 			return err;
 

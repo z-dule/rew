@@ -167,13 +167,13 @@ static bool udp_helper_recv_handler(struct sa *src, struct mbuf *mb, void *arg)
  *
  * @param layer  mandatory for HOST and RELAY candidates
  */
-int trice_add_local_candidate(struct ice_lcand **lcandp, struct trice *icem,
-			     unsigned compid, int proto,
-			     uint32_t prio, const struct sa *addr,
-			     const struct sa *base_addr,
-			     enum ice_cand_type type,
-			     enum ice_tcptype tcptype,
-			     void *sock, int layer)
+int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
+		    unsigned compid, int proto,
+		    uint32_t prio, const struct sa *addr,
+		    const struct sa *base_addr,
+		    enum ice_cand_type type,
+		    enum ice_tcptype tcptype,
+		    void *sock, int layer)
 {
 	struct ice_lcand *lcand;
 	int err = 0;
@@ -208,8 +208,8 @@ int trice_add_local_candidate(struct ice_lcand **lcandp, struct trice *icem,
 
 	/* TODO: dont look up TCP-ACTIVE types for now (port is zero) */
 	if (proto == IPPROTO_UDP) {
-		lcand = trice_find_local_candidate(icem, compid,
-						  proto, addr);
+		lcand = trice_lcand_find(icem, compid,
+					 proto, addr);
 		if (lcand) {
 			trice_printf(icem,
 				    "add_local[%s.%J] --"
@@ -352,9 +352,9 @@ int trice_add_local_candidate(struct ice_lcand **lcandp, struct trice *icem,
 }
 
 
-struct ice_lcand *trice_find_local_candidate(struct trice *icem,
-				     unsigned compid, int proto,
-				     const struct sa *addr)
+struct ice_lcand *trice_lcand_find(struct trice *icem,
+				   unsigned compid, int proto,
+				   const struct sa *addr)
 {
 	struct list *lst;
 	struct le *le;

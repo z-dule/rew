@@ -74,11 +74,11 @@ static int trice_add_rcandidate(struct ice_rcand **candp,
 
 
 /* you can call this at any time */
-int trice_add_remote_candidate(struct ice_rcand **rcandp, struct trice *icem,
-			      unsigned compid, const char *foundation,
-			      int proto, uint32_t prio,
-			      const struct sa *addr, enum ice_cand_type type,
-			      enum ice_tcptype tcptype)
+int trice_rcand_add(struct ice_rcand **rcandp, struct trice *icem,
+		    unsigned compid, const char *foundation,
+		    int proto, uint32_t prio,
+		    const struct sa *addr, enum ice_cand_type type,
+		    enum ice_tcptype tcptype)
 {
 	struct ice_rcand *rcand;
 	int sa_flags = SA_ADDR;
@@ -103,7 +103,7 @@ int trice_add_remote_candidate(struct ice_rcand **rcandp, struct trice *icem,
 	}
 
 	/* avoid duplicates */
-	rcand = trice_find_remote_candidate(icem, compid, proto, addr);
+	rcand = trice_rcand_find(icem, compid, proto, addr);
 	if (rcand)
 		goto out;
 
@@ -128,9 +128,9 @@ int trice_add_remote_candidate(struct ice_rcand **rcandp, struct trice *icem,
 }
 
 
-struct ice_rcand *trice_find_remote_candidate(struct trice *icem,
-					     unsigned compid, int proto,
-					     const struct sa *addr)
+struct ice_rcand *trice_rcand_find(struct trice *icem,
+				   unsigned compid, int proto,
+				   const struct sa *addr)
 {
 	struct list *lst;
 	struct le *le;
