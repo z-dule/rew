@@ -102,6 +102,12 @@ install: $(SHARED) $(STATIC)
 	$(INSTALL) -m 0755 $(SHARED) $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -m 0755 $(STATIC) $(DESTDIR)$(LIBDIR)
 
+install-static: $(STATIC)
+	@mkdir -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(INCDIR)
+	$(INSTALL) -m 0644 $(shell find include -name "*.h") \
+		$(DESTDIR)$(INCDIR)
+	$(INSTALL) -m 0755 $(STATIC) $(DESTDIR)$(LIBDIR)
+
 .PHONY: uninstall
 uninstall:
 	@rm -rf $(DESTDIR)$(INCDIR)

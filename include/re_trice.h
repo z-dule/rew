@@ -83,10 +83,10 @@ struct ice_candpair {
 };
 
 
-typedef void (ice_estab_h)(struct ice_candpair *pair, void *arg);
+typedef void (trice_estab_h)(struct ice_candpair *pair, void *arg);
 
 
-typedef void (ice_failed_h)(int err, uint16_t scode,
+typedef void (trice_failed_h)(int err, uint16_t scode,
 			    struct ice_candpair *pair, void *arg);
 
 
@@ -94,6 +94,7 @@ int  trice_alloc(struct trice **icemp, const struct trice_conf *conf,
 		 bool controlling, const char *lufrag, const char *lpwd);
 int  trice_set_remote_ufrag(struct trice *icem, const char *rufrag);
 int  trice_set_remote_pwd(struct trice *icem, const char *rpwd);
+void trice_set_controlling(struct trice *trice, bool controlling);
 bool trice_is_controlling(const struct trice *icem);
 int  trice_debug(struct re_printf *pf, const struct trice *icem);
 struct trice_conf *trice_conf(struct trice *icem);
@@ -114,6 +115,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 struct list      *trice_lcandl(const struct trice *icem);
 struct ice_lcand *trice_lcand_find(struct trice *icem, unsigned compid,
 				   int proto, const struct sa *addr);
+struct ice_lcand *trice_lcand_find2(const struct trice *icem,
+				    enum ice_cand_type type, int af);
 
 
 /* Remote candidate */
@@ -137,12 +140,11 @@ int  trice_candpairs_debug(struct re_printf *pf, const struct list *list);
 
 /* ICE checklist */
 void trice_checklist_set_waiting(struct trice *icem);
-int  trice_checklist_start(struct trice *icem, const struct stun_conf *conf,
-			  uint32_t interval, bool use_cand,
-			  ice_estab_h *estabh, ice_failed_h *failh, void *arg);
+int  trice_checklist_start(struct trice *icem, struct stun *stun,
+			   uint32_t interval, bool use_cand,
+			   trice_estab_h *estabh, trice_failed_h *failh,
+			   void *arg);
 enum ice_checkl_state trice_checklist_state(const struct trice *icem);
-const char    *ice_checkl_state2name(enum ice_checkl_state cst);
-struct stun *trice_stun(struct trice *icem);
 bool trice_checklist_iscompleted(const struct trice *icem);
 
 

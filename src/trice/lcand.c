@@ -389,6 +389,31 @@ struct ice_lcand *trice_lcand_find(struct trice *icem,
 }
 
 
+struct ice_lcand *trice_lcand_find2(const struct trice *icem,
+				    enum ice_cand_type type, int af)
+{
+	struct le *le;
+
+	if (!icem)
+		return NULL;
+
+	for (le = list_head(&icem->lcandl); le; le = le->next) {
+
+		struct ice_cand_attr *cand = le->data;
+
+		if (cand->type != type)
+			continue;
+
+		if (af != sa_af(&cand->addr))
+			continue;
+
+		return (void *)cand;
+	}
+
+	return NULL;
+}
+
+
 int trice_cands_debug(struct re_printf *pf, const struct list *lst)
 {
 	struct le *le;

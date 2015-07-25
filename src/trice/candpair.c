@@ -199,7 +199,7 @@ void trice_candpair_set_state(struct ice_candpair *pair,
 	if (trice_candpair_iscompleted(pair)) {
 		DEBUG_WARNING("set_state(%s): pair is already completed"
 			      " [%H]\n",
-			      ice_candpair_state2name(state),
+			      trice_candpair_state2name(state),
 			      trice_candpair_debug, pair);
 	}
 
@@ -207,7 +207,7 @@ void trice_candpair_set_state(struct ice_candpair *pair,
 	trice_printf(pair->lcand->icem,
 		    "%H new state \"%s\"\n",
 		    trice_candpair_debug, pair,
-		    ice_candpair_state2name(state));
+		    trice_candpair_state2name(state));
 #endif
 
 	pair->state = state;
@@ -475,7 +475,7 @@ int trice_candpair_debug(struct re_printf *pf, const struct ice_candpair *cp)
 
 	err = re_hprintf(pf, "{comp=%u} %10s {%c%c%c%c} %28H <---> %28H",
 			 cp->lcand->attr.compid,
-			 ice_candpair_state2name(cp->state),
+			 trice_candpair_state2name(cp->state),
 			 cp->valid ? 'V' : ' ',
 			 cp->nominated ? 'N' : ' ',
 			 cp->estab ? 'E' : ' ',
@@ -528,7 +528,7 @@ int trice_candpairs_debug(struct re_printf *pf, const struct list *list)
 }
 
 
-const char *ice_candpair_state2name(enum ice_candpair_state st)
+const char *trice_candpair_state2name(enum ice_candpair_state st)
 {
 	switch (st) {
 

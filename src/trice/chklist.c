@@ -53,9 +53,10 @@ static void pace_timeout(void *arg)
 }
 
 
-int trice_checklist_start(struct trice *icem, const struct stun_conf *conf,
-			 uint32_t interval, bool use_cand,
-			 ice_estab_h *estabh, ice_failed_h *failh, void *arg)
+int trice_checklist_start(struct trice *icem, struct stun *stun,
+			  uint32_t interval, bool use_cand,
+			  trice_estab_h *estabh, trice_failed_h *failh,
+			  void *arg)
 {
 	struct ice_checklist *ic;
 	int err = 0;
@@ -70,15 +71,13 @@ int trice_checklist_start(struct trice *icem, const struct stun_conf *conf,
 	if (!ic)
 		return ENOMEM;
 
-	err = stun_alloc(&ic->stun, NULL, NULL, NULL);
-	if (err)
-		goto out;
-
-	if (conf)
-		*stun_conf(ic->stun) = *conf;
+	if (stun) {
+		ic->stun = mem_ref(stun);
+	}
 	else {
-		stun_conf(ic->stun)->rto = 100;
-		stun_conf(ic->stun)->rc  =   4;
+		err = stun_alloc(&ic->stun, NULL, NULL, NULL);
+		if (err)
+			goto out;
 	}
 
 	ic->state = ICE_CHECKLIST_RUNNING;
@@ -251,8 +250,9 @@ int trice_checklist_debug(struct re_printf *pf, const struct ice_checklist *ic)
 	if (!ic)
 		return 0;
 
-	err |= re_hprintf(pf, " Checklist: state=%s, interval=%u\n",
-			  ice_checkl_state2name(ic->state), ic->interval);
+	err |= re_hprintf(pf, " Checklist: %s, interval=%u\n",
+		  tmr_isrunning(&ic->tmr_pace) ? "Running" : "Not-Running",
+			  ic->interval);
 	err |= re_hprintf(pf, " Pending connchecks: %u\n",
 			  list_count(&ic->conncheckl));
 	for (le = ic->conncheckl.head; le; le = le->next) {
@@ -264,26 +264,4 @@ int trice_checklist_debug(struct re_printf *pf, const struct ice_checklist *ic)
 	err |= stun_debug(pf, ic->stun);
 
 	return err;
-}
-
-
-const char *ice_checkl_state2name(enum ice_checkl_state cst)
-{
-	switch (cst) {
-
-	case ICE_CHECKLIST_IDLE:      return "Idle";
-	case ICE_CHECKLIST_RUNNING:   return "Running";
-	case ICE_CHECKLIST_COMPLETED: return "Completed";
-	case ICE_CHECKLIST_FAILED:    return "Failed";
-	default:                  return "???";
-	}
-}
-
-
-struct stun *trice_stun(struct trice *icem)
-{
-	if (!icem || !icem->checklist)
-		return NULL;
-
-	return icem->checklist->stun;
 }

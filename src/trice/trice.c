@@ -134,6 +134,15 @@ struct trice_conf *trice_conf(struct trice *icem)
 }
 
 
+void trice_set_controlling(struct trice *trice, bool controlling)
+{
+	if (!trice)
+		return;
+
+	trice->controlling = controlling;
+}
+
+
 bool trice_is_controlling(const struct trice *icem)
 {
 	return icem ? icem->controlling : false;

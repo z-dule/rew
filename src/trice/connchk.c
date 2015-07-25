@@ -289,7 +289,7 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 	trice_tracef(icem, "\x1b[36m[%u] Tx %H ---> %H (%s) %s\x1b[;m\n",
 		    lcand->attr.compid,
 		    trice_cand_print, cp->lcand, trice_cand_print, cp->rcand,
-		    ice_candpair_state2name(cp->state),
+		    trice_candpair_state2name(cp->state),
 		    use_cand ? "[USE]" : "");
 #endif
 
@@ -495,5 +495,5 @@ int trice_conncheck_debug(struct re_printf *pf, const struct ice_conncheck *cc)
 			  ,
 			  net_proto2name(cc->pair->lcand->attr.proto),
 			  cc->ct_conn, cc->use_cand,
-			  ice_candpair_state2name(cc->pair->state));
+			  trice_candpair_state2name(cc->pair->state));
 }

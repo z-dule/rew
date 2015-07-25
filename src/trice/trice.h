@@ -28,8 +28,8 @@ struct ice_checklist {
 	bool use_cand;
 
 	/* callback handlers */
-	ice_estab_h *estabh;
-	ice_failed_h *failh;
+	trice_estab_h *estabh;
+	trice_failed_h *failh;
 	void *arg;
 };
 
@@ -129,7 +129,7 @@ struct ice_candpair *trice_candpair_find(const struct list *lst,
 					const struct ice_rcand *rcand);
 int  trice_candpair_with_local(struct trice *icem, struct ice_lcand *lcand);
 int  trice_candpair_with_remote(struct trice *icem, struct ice_rcand *rcand);
-const char    *ice_candpair_state2name(enum ice_candpair_state st);
+const char    *trice_candpair_state2name(enum ice_candpair_state st);
 
 
 /* STUN server */
