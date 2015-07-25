@@ -31,6 +31,7 @@ static bool tcpconn_frame_handler(struct trice *icem,
 				  struct mbuf *mb, void *arg)
 {
 	struct ice_lcand *lcand = arg;
+	(void)icem;
 
 	return lcand->recvh(lcand, IPPROTO_TCP, tc,
 			    src, mb, lcand->arg);
