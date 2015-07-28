@@ -83,7 +83,8 @@ struct ice_candpair {
 };
 
 
-typedef void (trice_estab_h)(struct ice_candpair *pair, void *arg);
+typedef void (trice_estab_h)(struct ice_candpair *pair,
+			     const struct stun_msg *msg, void *arg);
 
 
 typedef void (trice_failed_h)(int err, uint16_t scode,
@@ -94,6 +95,7 @@ int  trice_alloc(struct trice **icemp, const struct trice_conf *conf,
 		 bool controlling, const char *lufrag, const char *lpwd);
 int  trice_set_remote_ufrag(struct trice *icem, const char *rufrag);
 int  trice_set_remote_pwd(struct trice *icem, const char *rpwd);
+int  trice_set_software(struct trice *icem, const char *sw);
 void trice_set_controlling(struct trice *trice, bool controlling);
 bool trice_is_controlling(const struct trice *icem);
 int  trice_debug(struct re_printf *pf, const struct trice *icem);

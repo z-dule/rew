@@ -63,6 +63,8 @@ struct trice {
 	struct ice_checklist *checklist;
 
 	struct list connl;           /**< TCP-connections for all components */
+
+	char *sw;
 };
 
 

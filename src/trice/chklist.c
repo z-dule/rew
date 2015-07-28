@@ -67,6 +67,12 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 	if (icem->checklist)
 		return 0;
 
+	/* The password is equal to the password provided by the peer */
+	if (!str_isset(icem->rpwd)) {
+		DEBUG_WARNING("start: remote password not set\n");
+		return EINVAL;
+	}
+
 	ic = mem_zalloc(sizeof(*ic), destructor);
 	if (!ic)
 		return ENOMEM;

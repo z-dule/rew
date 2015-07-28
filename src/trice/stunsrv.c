@@ -136,7 +136,7 @@ static int stunsrv_ereply(struct trice *icem, struct ice_lcand *lcand,
 	return stun_ereply(lcand->attr.proto, sock, src, presz, req,
 			   scode, reason,
 			   (uint8_t *)icem->lpwd, strlen(icem->lpwd), true, 1,
-			   STUN_ATTR_SOFTWARE, sw);
+			   STUN_ATTR_SOFTWARE, icem->sw ? icem->sw : sw);
 }
 
 
@@ -230,7 +230,7 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 	return stun_reply(lcand->attr.proto, sock, src, presz, req,
 			  (uint8_t *)icem->lpwd, strlen(icem->lpwd), true, 2,
 			  STUN_ATTR_XOR_MAPPED_ADDR, src,
-			  STUN_ATTR_SOFTWARE, sw);
+			  STUN_ATTR_SOFTWARE, icem->sw ? icem->sw : sw);
 
 
  badmsg:

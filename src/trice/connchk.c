@@ -36,7 +36,8 @@ static void conncheck_destructor(void *arg)
 }
 
 
-static void pair_established(struct trice *icem, struct ice_candpair *pair)
+static void pair_established(struct trice *icem, struct ice_candpair *pair,
+			     const struct stun_msg *msg)
 {
 	struct ice_tcpconn *conn;
 
@@ -71,8 +72,10 @@ static void pair_established(struct trice *icem, struct ice_candpair *pair)
 	if (!pair->estab) {
 		pair->estab = true;
 
-		if (icem->checklist->estabh)
-			icem->checklist->estabh(pair, icem->checklist->arg);
+		if (icem->checklist->estabh) {
+			icem->checklist->estabh(pair, msg,
+						icem->checklist->arg);
+		}
 	}
 }
 
@@ -93,7 +96,8 @@ static void pair_established(struct trice *icem, struct ice_candpair *pair)
  *
  */
 static void handle_success(struct trice *icem, struct ice_candpair *pair,
-			   const struct sa *mapped_addr)
+			   const struct sa *mapped_addr,
+			   const struct stun_msg *msg)
 {
 	unsigned compid = pair->lcand->attr.compid;
 	int err;
@@ -143,14 +147,14 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 
 		trice_candpair_make_valid(icem, pair_prflx);
 
-		pair_established(icem, pair_prflx);
+		pair_established(icem, pair_prflx, msg);
 		return;
 	}
 
 	pair->state = ICE_CANDPAIR_FROZEN;
 	trice_candpair_make_valid(icem, pair);
 
-	pair_established(icem, pair);
+	pair_established(icem, pair, msg);
 }
 
 
@@ -207,7 +211,7 @@ static void stunc_resp_handler(int err, uint16_t scode, const char *reason,
 			break;
 		}
 
-		handle_success(icem, pair, &attr->v.sa);
+		handle_success(icem, pair, &attr->v.sa, msg);
 		break;
 
 	case 487: /* Role Conflict */

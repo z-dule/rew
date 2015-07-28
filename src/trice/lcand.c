@@ -21,7 +21,7 @@
 #include "trice.h"
 
 
-#define DEBUG_MODULE "icecand"
+#define DEBUG_MODULE "icelcand"
 #define DEBUG_LEVEL 5
 #include <re_dbg.h>
 
@@ -159,6 +159,19 @@ static bool udp_helper_recv_handler(struct sa *src, struct mbuf *mb, void *arg)
 }
 
 
+/* The incoming data should not get here */
+static void dummy_udp_recv(const struct sa *src, struct mbuf *mb, void *arg)
+{
+	struct ice_lcand *lcand = arg;
+
+	DEBUG_NOTICE("@@@@ NO-ONE cared about this UDP packet? @@@@@"
+		     " (%zu bytes from %J to %s.%J)\n",
+		     mbuf_get_left(mb), src,
+		     ice_cand_type2name(lcand->attr.type),
+		     &lcand->attr.addr);
+}
+
+
 /*
  * you can call this at any time
  *
@@ -182,24 +195,24 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 		return EINVAL;
 
 	if (!sa_isset(addr, SA_ADDR)) {
-		DEBUG_WARNING("add_local_candidate: SA_ADDR is not set\n");
+		DEBUG_WARNING("lcand_add: SA_ADDR is not set\n");
 		return EINVAL;
 	}
 	if (type != ICE_CAND_TYPE_HOST) {
 		if (!sa_isset(addr, SA_PORT)) {
-			DEBUG_WARNING("add_local_candidate: %s: SA_PORT"
+			DEBUG_WARNING("lcand_add: %s: SA_PORT"
 				      " must be set (%J)\n",
 				      ice_cand_type2name(type), addr);
 			return EINVAL;
 		}
 		if (!sa_isset(base_addr, SA_ALL)) {
-			DEBUG_WARNING("add_local_candidate: %s: "
+			DEBUG_WARNING("lcand_add: %s: "
 				      " base_addr must be set\n",
 				      ice_cand_type2name(type));
 			return EINVAL;
 		}
 		if (sa_af(addr) != sa_af(base_addr)) {
-			DEBUG_WARNING("add_local_candidate: AF mismatch\n");
+			DEBUG_WARNING("lcand_add: AF mismatch\n");
 			return EAFNOSUPPORT;
 		}
 	}
@@ -251,7 +264,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 					    sa_port(&laddr));
 			}
 			else {
-				err = udp_listen(&lcand->us, addr, NULL, NULL);
+				err = udp_listen(&lcand->us, addr,
+						 dummy_udp_recv, lcand);
 				if (err)
 					goto out;
 
