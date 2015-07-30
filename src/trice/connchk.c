@@ -131,6 +131,7 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 			     trice_cand_print, pair->lcand);
 
 		lcand->base_addr = pair->lcand->attr.addr;
+		lcand->us = mem_ref(pair->lcand->us);
 
 		/* newly created Candidate-PAir */
 		err = trice_candpair_alloc(&pair_prflx, icem,
@@ -254,11 +255,14 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 	if (!ic)
 		return ENOSYS;
 
+#if 1
+	// todo: allow this, as long as lcand has an us
 	if (cp->lcand->attr.type == ICE_CAND_TYPE_SRFLX) {
-		DEBUG_WARNING("conncheck: cannot send from local SRFLX\n");
+		DEBUG_NOTICE("conncheck: cannot send from local SRFLX\n");
 		err = EPROTO;
 		goto out;
 	}
+#endif
 
 	/* The password is equal to the password provided by the peer */
 	if (!str_isset(icem->rpwd)) {
@@ -290,8 +294,10 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 	}
 
 #if ICE_TRACE
-	trice_tracef(icem, "\x1b[36m[%u] Tx %H ---> %H (%s) %s\x1b[;m\n",
+	trice_tracef(icem, "\x1b[36m[%u] Tx [presz=%zu]"
+		     " %H ---> %H (%s) %s\x1b[;m\n",
 		    lcand->attr.compid,
+		     presz,
 		    trice_cand_print, cp->lcand, trice_cand_print, cp->rcand,
 		    trice_candpair_state2name(cp->state),
 		    use_cand ? "[USE]" : "");

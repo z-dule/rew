@@ -118,6 +118,9 @@ int trice_rcand_add(struct ice_rcand **rcandp, struct trice *icem,
 	if (err)
 		goto out;
 
+	// re-start checklist, if not running
+	trice_checklist_refresh(icem);
+
  out:
 	if (err)
 		mem_deref(rcand);
@@ -162,4 +165,29 @@ struct ice_rcand *trice_rcand_find(struct trice *icem,
 	}
 
 	return NULL;
+}
+
+
+int trice_rcands_debug(struct re_printf *pf, const struct list *lst)
+{
+	struct le *le;
+	int err;
+
+	err = re_hprintf(pf, " (%u)\n", list_count(lst));
+
+	for (le = list_head(lst); le && !err; le = le->next) {
+
+		const struct ice_rcand *rcand = le->data;
+
+		err |= re_hprintf(pf, "  {%u} "
+				  "fnd=%-8s prio=%08x %24H",
+				  rcand->attr.compid,
+				  rcand->attr.foundation,
+				  rcand->attr.prio,
+				  trice_cand_print, rcand);
+
+		err |= re_hprintf(pf, "\n");
+	}
+
+	return err;
 }

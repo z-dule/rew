@@ -188,9 +188,9 @@ int trice_debug(struct re_printf *pf, const struct trice *icem)
 			  icem->lufrag, icem->lpwd);
 
 	err |= re_hprintf(pf, " Local Candidates: %H",
-			  trice_cands_debug, &icem->lcandl);
+			  trice_lcands_debug, &icem->lcandl);
 	err |= re_hprintf(pf, " Remote Candidates: %H",
-			  trice_cands_debug, &icem->rcandl);
+			  trice_rcands_debug, &icem->rcandl);
 	err |= re_hprintf(pf, " Check list: %H",
 			  trice_candpairs_debug, &icem->checkl);
 	err |= re_hprintf(pf, " Valid list: %H",

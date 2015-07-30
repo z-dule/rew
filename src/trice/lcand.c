@@ -145,6 +145,18 @@ int trice_add_lcandidate(struct ice_lcand **candp,
 }
 
 
+/* this one is only for Send statistics on Local Candidate */
+static bool udp_helper_send_handler(int *err, struct sa *dst,
+				    struct mbuf *mb, void *arg)
+{
+	struct ice_lcand *lcand = arg;
+
+	lcand->stats.n_tx += 1;
+
+	return false;  /* NOT handled */
+}
+
+
 /*
  * lcand: on which Local Candidate to receive the packet
  *
@@ -153,6 +165,8 @@ int trice_add_lcandidate(struct ice_lcand **candp,
 static bool udp_helper_recv_handler(struct sa *src, struct mbuf *mb, void *arg)
 {
 	struct ice_lcand *lcand = arg;
+
+	lcand->stats.n_rx += 1;
 
 	return lcand->recvh(lcand, IPPROTO_UDP, lcand->us,
 			    src, mb, lcand->arg);
@@ -205,6 +219,10 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 				      ice_cand_type2name(type), addr);
 			return EINVAL;
 		}
+
+#if 0
+		// TODO: relax the checks for base_addr, make it optional
+
 		if (!sa_isset(base_addr, SA_ALL)) {
 			DEBUG_WARNING("lcand_add: %s: "
 				      " base_addr must be set\n",
@@ -215,6 +233,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 			DEBUG_WARNING("lcand_add: AF mismatch\n");
 			return EAFNOSUPPORT;
 		}
+#endif
+
 	}
 
 	/* lookup candidate, replace if PRIO is higher */
@@ -275,7 +295,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 					goto out;
 			}
 			err = udp_register_helper(&lcand->uh, lcand->us,
-						  layer, NULL,
+						  layer,
+						  udp_helper_send_handler,
 						  udp_helper_recv_handler,
 						  lcand);
 			if (err)
@@ -327,7 +348,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 			}
 			lcand->us = mem_ref(sock);
 			err = udp_register_helper(&lcand->uh, lcand->us,
-						  layer, NULL,
+						  layer,
+						  udp_helper_send_handler,
 						  udp_helper_recv_handler,
 						  lcand);
 			if (err)
@@ -428,7 +450,7 @@ struct ice_lcand *trice_lcand_find2(const struct trice *icem,
 }
 
 
-int trice_cands_debug(struct re_printf *pf, const struct list *lst)
+int trice_lcands_debug(struct re_printf *pf, const struct list *lst)
 {
 	struct le *le;
 	int err;
@@ -439,13 +461,16 @@ int trice_cands_debug(struct re_printf *pf, const struct list *lst)
 
 		const struct ice_lcand *cand = le->data;
 
-		err |= re_hprintf(pf, "  {%u} fnd=%-8s prio=%08x %24H",
-				  cand->attr.compid, cand->attr.foundation,
+		err |= re_hprintf(pf, "  {%u} [tx=%2zu, rx=%2zu] "
+				  "fnd=%-8s prio=%08x %24H",
+				  cand->attr.compid,
+				  cand->stats.n_tx,
+				  cand->stats.n_rx,
+				  cand->attr.foundation,
 				  cand->attr.prio,
 				  trice_cand_print, cand);
 
-		if (cand->attr.type != ICE_CAND_TYPE_HOST &&
-		    sa_isset(&cand->base_addr, SA_ADDR)) {
+		if (sa_isset(&cand->base_addr, SA_ADDR)) {
 			err |= re_hprintf(pf, " (base-addr = %J)",
 					  &cand->base_addr);
 		}

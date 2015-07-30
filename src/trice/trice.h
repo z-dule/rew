@@ -20,7 +20,7 @@ struct ice_conncheck;
 struct ice_checklist {
 	struct trice *icem;     /* parent */
 
-	enum ice_checkl_state state; /**< State of the checklist             */
+//enum ice_checkl_state state; /**< State of the checklist             */
 	struct tmr tmr_pace;         /**< Timer for pacing STUN requests     */
 	uint32_t interval;
 	struct stun *stun;           /**< STUN Transport                     */
@@ -112,7 +112,8 @@ int trice_add_lcandidate(struct ice_lcand **candp,
 			unsigned compid, char *foundation, int proto,
 			uint32_t prio, const struct sa *addr,
 			enum ice_cand_type type, enum ice_tcptype tcptype);
-int trice_cands_debug(struct re_printf *pf, const struct list *lst);
+int trice_lcands_debug(struct re_printf *pf, const struct list *lst);
+int trice_rcands_debug(struct re_printf *pf, const struct list *lst);
 
 
 /* candpair */
@@ -151,6 +152,7 @@ int  trice_checklist_debug(struct re_printf *pf,
 			   const struct ice_checklist *ic);
 void trice_conncheck_schedule_check(struct trice *icem);
 int  trice_checklist_update(struct trice *icem);
+void trice_checklist_refresh(struct trice *icem);
 
 
 /* ICE conncheck */

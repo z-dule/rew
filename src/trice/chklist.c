@@ -26,8 +26,6 @@ static void destructor(void *arg)
 {
 	struct ice_checklist *ic = arg;
 
-	ic->state = ICE_CHECKLIST_IDLE;
-
 	tmr_cancel(&ic->tmr_pace);
 	list_flush(&ic->conncheckl);  /* flush before stun deref */
 	mem_deref(ic->stun);
@@ -39,15 +37,10 @@ static void pace_timeout(void *arg)
 	struct ice_checklist *ic = arg;
 	struct trice *icem = (struct trice *)ic->icem;
 
-	if (ic->state == ICE_CHECKLIST_RUNNING) {
-		tmr_start(&ic->tmr_pace, ic->interval,
-			  pace_timeout, ic);
+	tmr_start(&ic->tmr_pace, ic->interval,
+		  pace_timeout, ic);
 
-		trice_conncheck_schedule_check(icem);
-	}
-
-	if (ic->state == ICE_CHECKLIST_FAILED)
-		return;
+	trice_conncheck_schedule_check(icem);
 
 	trice_checklist_update(icem);
 }
@@ -64,8 +57,14 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 	if (!icem)
 		return EINVAL;
 
-	if (icem->checklist)
+	if (icem->checklist) {
+		ic = icem->checklist;
+
+		if (!tmr_isrunning(&ic->tmr_pace)) {
+			tmr_start(&ic->tmr_pace, 1, pace_timeout, ic);
+		}
 		return 0;
+	}
 
 	/* The password is equal to the password provided by the peer */
 	if (!str_isset(icem->rpwd)) {
@@ -86,35 +85,24 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 			goto out;
 	}
 
-	ic->state = ICE_CHECKLIST_RUNNING;
 	tmr_init(&ic->tmr_pace);
 
 	ic->interval = interval;
 	ic->icem = icem;
 	ic->use_cand = use_cand;
+	ic->estabh = estabh;
+	ic->failh  = failh;
+	ic->arg    = arg;
 
 	tmr_start(&ic->tmr_pace, 1, pace_timeout, ic);
 
 	icem->checklist = ic;
-
-	ic->estabh = estabh;
-	ic->failh  = failh;
-	ic->arg    = arg;
 
  out:
 	if (err)
 		mem_deref(ic);
 
 	return err;
-}
-
-
-enum ice_checkl_state trice_checklist_state(const struct trice *icem)
-{
-	if (!icem || !icem->checklist)
-		return ICE_CHECKLIST_IDLE;
-
-	return icem->checklist->state;
 }
 
 
@@ -234,17 +222,37 @@ int trice_checklist_update(struct trice *icem)
 
 	if (trice_checklist_iscompleted(icem)) {
 
-		if (list_isempty(&icem->validl)) {
-			ic->state = ICE_CHECKLIST_FAILED;
-		}
-		else {
-			ic->state = ICE_CHECKLIST_COMPLETED;
-		}
-
+		re_printf("  ~~ ICE checklist is complete\n");
 		tmr_cancel(&ic->tmr_pace);
 	}
 
 	return 0;
+}
+
+
+void trice_checklist_refresh(struct trice *icem)
+{
+	struct ice_checklist *ic;
+
+	if (!icem || !icem->checklist)
+		return;
+
+	ic = icem->checklist;
+
+	tmr_start(&ic->tmr_pace, ic->interval, pace_timeout, ic);
+}
+
+
+bool trice_checklist_isrunning(const struct trice *icem)
+{
+	struct ice_checklist *ic;
+
+	if (!icem || !icem->checklist)
+		return false;
+
+	ic = icem->checklist;
+
+	return tmr_isrunning(&ic->tmr_pace);
 }
 
 

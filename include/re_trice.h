@@ -14,14 +14,6 @@ enum ice_candpair_state {
 	ICE_CANDPAIR_FAILED      /**< Failed state; check failed             */
 };
 
-/** Defines the ICE checklist state */
-enum ice_checkl_state {
-	ICE_CHECKLIST_IDLE = 0,
-	ICE_CHECKLIST_RUNNING,
-	ICE_CHECKLIST_COMPLETED,
-	ICE_CHECKLIST_FAILED
-};
-
 /** ICE Configuration */
 struct trice_conf {
 	bool debug;             /**< Enable ICE debugging                  */
@@ -53,6 +45,11 @@ struct ice_lcand {
 
 	// todo: remove
 	struct trice *icem;           /* parent */
+
+	struct {
+		size_t n_tx;
+		size_t n_rx;
+	} stats;
 };
 
 /** Remote candidate */
@@ -146,7 +143,7 @@ int  trice_checklist_start(struct trice *icem, struct stun *stun,
 			   uint32_t interval, bool use_cand,
 			   trice_estab_h *estabh, trice_failed_h *failh,
 			   void *arg);
-enum ice_checkl_state trice_checklist_state(const struct trice *icem);
+bool trice_checklist_isrunning(const struct trice *icem);
 bool trice_checklist_iscompleted(const struct trice *icem);
 
 
