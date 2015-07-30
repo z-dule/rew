@@ -512,7 +512,7 @@ int trice_candpairs_debug(struct re_printf *pf, const struct list *list)
 			err |= re_hprintf(pf, "\x1b[32m");
 			ansi = true;
 		}
-		else if (cp->state == ICE_CANDPAIR_FAILED) {
+		else if (cp->err || cp->scode) {
 			err |= re_hprintf(pf, "\x1b[31m");
 			ansi = true;
 		}

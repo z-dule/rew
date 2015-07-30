@@ -108,10 +108,13 @@ struct ice_conncheck {
 
 /* cand */
 int trice_add_lcandidate(struct ice_lcand **candp,
-			struct trice *icem, struct list *lst,
-			unsigned compid, char *foundation, int proto,
-			uint32_t prio, const struct sa *addr,
-			enum ice_cand_type type, enum ice_tcptype tcptype);
+			 struct trice *icem, struct list *lst,
+			 unsigned compid, char *foundation, int proto,
+			 uint32_t prio, const struct sa *addr,
+			 const struct sa *base_addr,
+			 enum ice_cand_type type,
+			 const struct sa *rel_addr,
+			 enum ice_tcptype tcptype);
 int trice_lcands_debug(struct re_printf *pf, const struct list *lst);
 int trice_rcands_debug(struct re_printf *pf, const struct list *lst);
 
@@ -162,7 +165,8 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 			       bool cc_use_cand);
 int trice_conncheck_trigged(struct trice *icem, struct ice_candpair *pair,
 			   void *sock, bool use_cand);
-int trice_conncheck_debug(struct re_printf *pf, const struct ice_conncheck *cc);
+int trice_conncheck_debug(struct re_printf *pf,
+			  const struct ice_conncheck *cc);
 
 
 /* TCP connections */

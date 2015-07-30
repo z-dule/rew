@@ -52,3 +52,16 @@ enum ice_tcptype ice_tcptype_reverse(enum ice_tcptype type)
 	default:              return (enum ice_tcptype)-1;
 	}
 }
+
+
+enum ice_cand_type ice_cand_type_base(enum ice_cand_type type)
+{
+	switch (type) {
+
+	case ICE_CAND_TYPE_HOST:    return ICE_CAND_TYPE_HOST;
+	case ICE_CAND_TYPE_SRFLX:   return ICE_CAND_TYPE_HOST;
+	case ICE_CAND_TYPE_PRFLX:   return ICE_CAND_TYPE_HOST;
+	case ICE_CAND_TYPE_RELAY:   return ICE_CAND_TYPE_RELAY;
+	default: return type;
+	}
+}

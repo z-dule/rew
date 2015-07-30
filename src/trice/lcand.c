@@ -99,10 +99,13 @@ static bool trice_lcand_recv_handler(struct ice_lcand *lcand,
 
 
 int trice_add_lcandidate(struct ice_lcand **candp,
-		       struct trice *icem, struct list *lst,
-		       unsigned compid, char *foundation, int proto,
-		       uint32_t prio, const struct sa *addr,
-		       enum ice_cand_type type, enum ice_tcptype tcptype)
+			 struct trice *icem, struct list *lst,
+			 unsigned compid, char *foundation, int proto,
+			 uint32_t prio, const struct sa *addr,
+			 const struct sa *base_addr,
+			 enum ice_cand_type type,
+			 const struct sa *rel_addr,
+			 enum ice_tcptype tcptype)
 {
 	struct ice_lcand *cand;
 	int err = 0;
@@ -125,15 +128,20 @@ int trice_add_lcandidate(struct ice_lcand **candp,
 	cand->attr.addr   = *addr;
 	cand->attr.type   = type;
 	cand->attr.tcptype = tcptype;
-
+	if (rel_addr)
+		cand->attr.rel_addr = *rel_addr;
 	if (err)
 		goto out;
 
 	cand->icem = icem;
-	list_append(lst, &cand->le, cand);
 
 	cand->recvh = trice_lcand_recv_handler;
 	cand->arg = icem;
+
+	if (base_addr)
+		cand->base_addr = *base_addr;
+
+	list_append(lst, &cand->le, cand);
 
  out:
 	if (err)
@@ -150,6 +158,9 @@ static bool udp_helper_send_handler(int *err, struct sa *dst,
 				    struct mbuf *mb, void *arg)
 {
 	struct ice_lcand *lcand = arg;
+	(void)err;
+	(void)dst;
+	(void)mb;
 
 	lcand->stats.n_tx += 1;
 
@@ -192,13 +203,16 @@ static void dummy_udp_recv(const struct sa *src, struct mbuf *mb, void *arg)
  * @param addr HOST:     SA_ADDR portion is used
  *             non-HOST: SA_ADDR + SA_PORT portion is used
  *
+ * @param base_addr  Optional
+ * @param rel_addr   Optional
+ *
  * @param layer  mandatory for HOST and RELAY candidates
  */
 int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 		    unsigned compid, int proto,
 		    uint32_t prio, const struct sa *addr,
 		    const struct sa *base_addr,
-		    enum ice_cand_type type,
+		    enum ice_cand_type type, const struct sa *rel_addr,
 		    enum ice_tcptype tcptype,
 		    void *sock, int layer)
 {
@@ -241,8 +255,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 
 	/* TODO: dont look up TCP-ACTIVE types for now (port is zero) */
 	if (proto == IPPROTO_UDP) {
-		lcand = trice_lcand_find(icem, compid,
-					 proto, addr);
+
+		lcand = trice_lcand_find(icem, -1, compid, proto, addr);
 		if (lcand) {
 			trice_printf(icem,
 				    "add_local[%s.%J] --"
@@ -260,7 +274,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 	}
 
 	err = trice_add_lcandidate(&lcand, icem, &icem->lcandl, compid, NULL,
-				 proto, prio, addr, type, tcptype);
+				   proto, prio, addr, base_addr,
+				   type, rel_addr, tcptype);
 	if (err)
 		return err;
 
@@ -294,6 +309,7 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 				if (err)
 					goto out;
 			}
+
 			err = udp_register_helper(&lcand->uh, lcand->us,
 						  layer,
 						  udp_helper_send_handler,
@@ -341,12 +357,17 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 		switch (proto) {
 
 		case IPPROTO_UDP:
-			if (!sock) {
-				DEBUG_WARNING("add_local: RELAY: no sock\n");
-				err = EINVAL;
-				goto out;
+
+			if (sock) {
+				lcand->us = mem_ref(sock);
 			}
-			lcand->us = mem_ref(sock);
+			else {
+				err = udp_listen(&lcand->us, NULL,
+						 dummy_udp_recv, lcand);
+				if (err)
+					goto out;
+			}
+
 			err = udp_register_helper(&lcand->uh, lcand->us,
 						  layer,
 						  udp_helper_send_handler,
@@ -355,7 +376,6 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 			if (err)
 				goto out;
 
-			/* todo: also handle no-sock options? */
 			break;
 
 		default:
@@ -366,17 +386,13 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 
 	lcand->layer = layer;
 
-	if (base_addr) {
-		lcand->base_addr = *base_addr;
-		lcand->attr.rel_addr = *base_addr;
-	}
-	else
-		lcand->base_addr = lcand->attr.addr;
-
 	/* pair this local-candidate with all existing remote-candidates */
 	err = trice_candpair_with_local(icem, lcand);
 	if (err)
 		goto out;
+
+	/* new pair -- refresh the checklist timer */
+	trice_checklist_refresh(icem);
 
  out:
 	if (err)
@@ -389,6 +405,7 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 
 
 struct ice_lcand *trice_lcand_find(struct trice *icem,
+				   enum ice_cand_type type,
 				   unsigned compid, int proto,
 				   const struct sa *addr)
 {
@@ -408,6 +425,9 @@ struct ice_lcand *trice_lcand_find(struct trice *icem,
 	for (le = list_head(lst); le; le = le->next) {
 
 		struct ice_cand_attr *cand = le->data;
+
+		if (type != (enum ice_cand_type)-1 && type != cand->type)
+			continue;
 
 		if (compid && cand->compid != compid)
 			continue;
@@ -461,9 +481,12 @@ int trice_lcands_debug(struct re_printf *pf, const struct list *lst)
 
 		const struct ice_lcand *cand = le->data;
 
-		err |= re_hprintf(pf, "  {%u} [tx=%2zu, rx=%2zu] "
+		err |= re_hprintf(pf, "  {%u} us=%12p [tx=%3zu, rx=%3zu] "
 				  "fnd=%-8s prio=%08x %24H",
 				  cand->attr.compid,
+
+				  cand->us,
+
 				  cand->stats.n_tx,
 				  cand->stats.n_rx,
 				  cand->attr.foundation,
@@ -473,6 +496,11 @@ int trice_lcands_debug(struct re_printf *pf, const struct list *lst)
 		if (sa_isset(&cand->base_addr, SA_ADDR)) {
 			err |= re_hprintf(pf, " (base-addr = %J)",
 					  &cand->base_addr);
+		}
+
+		if (sa_isset(&cand->attr.rel_addr, SA_ADDR)) {
+			err |= re_hprintf(pf, " (rel-addr = %J)",
+					  &cand->attr.rel_addr);
 		}
 
 		err |= re_hprintf(pf, "\n");
@@ -501,4 +529,55 @@ int trice_cand_print(struct re_printf *pf, const struct ice_cand_attr *cand)
 	err |= re_hprintf(pf, "|%J", &cand->addr);
 
 	return err;
+}
+
+
+void *trice_lcand_sock(struct trice *icem, const struct ice_lcand *lcand)
+{
+	struct ice_lcand *base = NULL;
+
+	if (!icem || !lcand)
+		return NULL;
+
+	if (sa_isset(&lcand->base_addr, SA_ALL)) {
+
+		enum ice_cand_type base_type;
+
+		base_type = ice_cand_type_base(lcand->attr.type);
+
+		base = trice_lcand_find(icem,
+					base_type,
+					lcand->attr.compid,
+					lcand->attr.proto,
+					&lcand->base_addr);
+	}
+
+	/* note: original lcand has presedence, fallback to base-candidate */
+	switch (lcand->attr.type) {
+
+	case ICE_CAND_TYPE_HOST:
+		return lcand->us;
+
+	case ICE_CAND_TYPE_SRFLX:
+	case ICE_CAND_TYPE_PRFLX:
+		if (lcand->us)
+			return lcand->us;
+		else if (base && base->us)
+			return base->us;
+		else {
+			DEBUG_WARNING("lcand_sock: no SOCK or BASE for "
+				      " type '%s'\n",
+				      ice_cand_type2name(lcand->attr.type));
+			return NULL;
+		}
+		break;
+
+	case ICE_CAND_TYPE_RELAY:
+		return lcand->us;
+
+	default:
+		return NULL;
+	}
+
+	return NULL;
 }

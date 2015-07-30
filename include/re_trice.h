@@ -35,7 +35,10 @@ typedef bool (ice_cand_recv_h)(struct ice_lcand *lcand,
 struct ice_lcand {
 	struct ice_cand_attr attr;   /**< Base class (inheritance)           */
 	struct le le;                /**< List element                       */
+
+	/* Base-address only set for SRFLX, PRFLX, RELAY */
 	struct sa base_addr;    /* IP-address of "base" candidate (optional) */
+
 	struct udp_sock *us;
 	struct udp_helper *uh;
 	struct tcp_sock *ts;    /* TCP for simultaneous-open or passive. */
@@ -103,19 +106,24 @@ struct trice_conf *trice_conf(struct trice *icem);
 int  trice_cand_print(struct re_printf *pf, const struct ice_cand_attr *cand);
 enum ice_tcptype   ice_tcptype_reverse(enum ice_tcptype type);
 const char        *ice_tcptype_name(enum ice_tcptype tcptype);
+enum ice_cand_type ice_cand_type_base(enum ice_cand_type type);
 
 
 /* Local candidates */
 int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 		    unsigned compid, int proto, uint32_t prio,
 		    const struct sa *addr, const struct sa *base_addr,
-		    enum ice_cand_type type, enum ice_tcptype tcptype,
+		    enum ice_cand_type type, const struct sa *rel_addr,
+		    enum ice_tcptype tcptype,
 		    void *sock, int layer);
 struct list      *trice_lcandl(const struct trice *icem);
-struct ice_lcand *trice_lcand_find(struct trice *icem, unsigned compid,
-				   int proto, const struct sa *addr);
+struct ice_lcand *trice_lcand_find(struct trice *icem,
+				   enum ice_cand_type type,
+				   unsigned compid, int proto,
+				   const struct sa *addr);
 struct ice_lcand *trice_lcand_find2(const struct trice *icem,
 				    enum ice_cand_type type, int af);
+void *trice_lcand_sock(struct trice *icem, const struct ice_lcand *lcand);
 
 
 /* Remote candidate */

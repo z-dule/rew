@@ -106,7 +106,7 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 		DEBUG_WARNING("handle_success: invalid params\n");
 	}
 
-	if (!trice_lcand_find(icem, compid,
+	if (!trice_lcand_find(icem, -1, compid,
 			      pair->lcand->attr.proto, mapped_addr)) {
 
 		struct ice_lcand *lcand;
@@ -116,10 +116,12 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 		prio = ice_cand_calc_prio(ICE_CAND_TYPE_PRFLX, 0, compid);
 
 		err = trice_add_lcandidate(&lcand, icem, &icem->lcandl, compid,
-					 "FND", pair->lcand->attr.proto,
-					 prio, mapped_addr,
-					 ICE_CAND_TYPE_PRFLX,
-					 pair->lcand->attr.tcptype);
+					   "FND", pair->lcand->attr.proto,
+					   prio, mapped_addr,
+					   &pair->lcand->attr.addr,
+					   ICE_CAND_TYPE_PRFLX,
+					   &pair->lcand->attr.addr,
+					   pair->lcand->attr.tcptype);
 		if (err) {
 			DEBUG_WARNING("failed to add PRFLX: %m\n", err);
 			return;
@@ -129,9 +131,6 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 			     " from base (%H)\n",
 			     trice_cand_print, lcand,
 			     trice_cand_print, pair->lcand);
-
-		lcand->base_addr = pair->lcand->attr.addr;
-		lcand->us = mem_ref(pair->lcand->us);
 
 		/* newly created Candidate-PAir */
 		err = trice_candpair_alloc(&pair_prflx, icem,
@@ -144,7 +143,7 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 		pair_prflx->conn = mem_ref(pair->conn);
 
 		/* mark the original HOST-one as failed */
-		trice_candpair_failed(pair, ECANCELED, 0);
+		trice_candpair_failed(pair, 0, 0);
 
 		trice_candpair_make_valid(icem, pair_prflx);
 
@@ -255,6 +254,11 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 	if (!ic)
 		return ENOSYS;
 
+	if (!sock) {
+		DEBUG_WARNING("conncheck: no SOCK\n");
+		return EINVAL;
+	}
+
 #if 1
 	// todo: allow this, as long as lcand has an us
 	if (cp->lcand->attr.type == ICE_CAND_TYPE_SRFLX) {
@@ -352,6 +356,7 @@ int trice_conncheck_send(struct trice *icem, struct ice_candpair *pair,
 	struct ice_lcand *lcand;
 	struct ice_tcpconn *conn;
 	struct ice_conncheck *cc = NULL;
+	void *sock;
 	int err = 0;
 
 	if (!icem || !pair)
@@ -378,8 +383,10 @@ int trice_conncheck_send(struct trice *icem, struct ice_candpair *pair,
 	switch (pair->lcand->attr.proto) {
 
 	case IPPROTO_UDP:
+		sock = trice_lcand_sock(icem, lcand);
+
 		err = trice_conncheck_stun_request(ic, cc, pair,
-						 lcand->us, use_cand);
+						 sock, use_cand);
 		if (err)
 			goto out;
 		break;

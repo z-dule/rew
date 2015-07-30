@@ -118,7 +118,7 @@ int trice_rcand_add(struct ice_rcand **rcandp, struct trice *icem,
 	if (err)
 		goto out;
 
-	// re-start checklist, if not running
+	/* new pair -- refresh the checklist timer */
 	trice_checklist_refresh(icem);
 
  out:
