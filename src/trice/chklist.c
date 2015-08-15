@@ -94,7 +94,7 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 	ic->failh  = failh;
 	ic->arg    = arg;
 
-	tmr_start(&ic->tmr_pace, 1, pace_timeout, ic);
+	tmr_start(&ic->tmr_pace, interval, pace_timeout, ic);
 
 	icem->checklist = ic;
 
@@ -264,7 +264,7 @@ int trice_checklist_debug(struct re_printf *pf, const struct ice_checklist *ic)
 	if (!ic)
 		return 0;
 
-	err |= re_hprintf(pf, " Checklist: %s, interval=%u\n",
+	err |= re_hprintf(pf, " Checklist: %s, interval=%ums\n",
 		  tmr_isrunning(&ic->tmr_pace) ? "Running" : "Not-Running",
 			  ic->interval);
 	err |= re_hprintf(pf, " Pending connchecks: %u\n",
