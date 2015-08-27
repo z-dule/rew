@@ -196,7 +196,11 @@ static void stunc_resp_handler(int err, uint16_t scode, const char *reason,
 #endif
 
 	if (err) {
-		DEBUG_NOTICE("stun response: %m\n", err);
+		DEBUG_NOTICE("stun response: [%H --> %H] %m\n",
+			     trice_cand_print, pair->lcand,
+			     trice_cand_print, pair->rcand,
+			     err);
+
 		trice_candpair_failed(pair, err, scode);
 		goto out;
 	}
@@ -255,11 +259,11 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 		return ENOSYS;
 
 	if (!sock) {
-		DEBUG_WARNING("conncheck: no SOCK\n");
+		DEBUG_NOTICE("conncheck: no SOCK\n");
 		return EINVAL;
 	}
 
-#if 1
+#if 0
 	// todo: allow this, as long as lcand has an us
 	if (cp->lcand->attr.type == ICE_CAND_TYPE_SRFLX) {
 		DEBUG_NOTICE("conncheck: cannot send from local SRFLX\n");
@@ -322,7 +326,7 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 			   STUN_ATTR_USE_CAND,
 			   use_cand ? &use_cand : 0);
 	if (err) {
-		DEBUG_WARNING("stun_request from %H to %H failed (%m)\n",
+		DEBUG_NOTICE("stun_request from %H to %H failed (%m)\n",
 			      trice_cand_print, lcand,
 			      trice_cand_print, cp->rcand,
 			      err);

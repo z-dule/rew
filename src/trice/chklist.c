@@ -85,7 +85,7 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 			goto out;
 
 		/* Update STUN Transport */
-		stun_conf(ic->stun)->rto = 50;
+		stun_conf(ic->stun)->rto = 100;
 		stun_conf(ic->stun)->rc = 4;
 
 	}
@@ -226,9 +226,12 @@ int trice_checklist_update(struct trice *icem)
 		return ENOSYS;
 
 	if (trice_checklist_iscompleted(icem)) {
-
-		re_printf("  ~~ ICE checklist is complete\n");
 		tmr_cancel(&ic->tmr_pace);
+
+		trice_printf(icem, "ICE checklist is complete"
+			     " (checkl=%u, valid=%u)\n",
+			     list_count(&icem->checkl),
+			     list_count(&icem->validl));
 	}
 
 	return 0;

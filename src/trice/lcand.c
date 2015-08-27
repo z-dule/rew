@@ -383,6 +383,24 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 			goto out;
 		}
 	}
+	else if (type == ICE_CAND_TYPE_SRFLX) {
+
+		/* Special case for SRFLX UDP candidates, if he has
+		 * its own UDP-socket that can be used.
+		 */
+		if (proto == IPPROTO_UDP && sock) {
+
+			lcand->us = mem_ref(sock);
+
+			err = udp_register_helper(&lcand->uh, lcand->us,
+						  layer,
+						  udp_helper_send_handler,
+						  udp_helper_recv_handler,
+						  lcand);
+			if (err)
+				goto out;
+		}
+	}
 
 	lcand->layer = layer;
 
@@ -565,9 +583,9 @@ void *trice_lcand_sock(struct trice *icem, const struct ice_lcand *lcand)
 		else if (base && base->us)
 			return base->us;
 		else {
-			DEBUG_WARNING("lcand_sock: no SOCK or BASE for "
-				      " type '%s'\n",
-				      ice_cand_type2name(lcand->attr.type));
+			DEBUG_NOTICE("lcand_sock: no SOCK or BASE for "
+				     " type '%s'\n",
+				     ice_cand_type2name(lcand->attr.type));
 			return NULL;
 		}
 		break;
