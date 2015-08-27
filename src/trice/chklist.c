@@ -83,6 +83,11 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 		err = stun_alloc(&ic->stun, NULL, NULL, NULL);
 		if (err)
 			goto out;
+
+		/* Update STUN Transport */
+		stun_conf(ic->stun)->rto = 50;
+		stun_conf(ic->stun)->rc = 4;
+
 	}
 
 	tmr_init(&ic->tmr_pace);
