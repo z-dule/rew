@@ -260,15 +260,6 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 		return EINVAL;
 	}
 
-#if 0
-	// todo: allow this, as long as lcand has an us
-	if (cp->lcand->attr.type == ICE_CAND_TYPE_SRFLX) {
-		DEBUG_NOTICE("conncheck: cannot send from local SRFLX\n");
-		err = EPROTO;
-		goto out;
-	}
-#endif
-
 	/* The password is equal to the password provided by the peer */
 	if (!str_isset(icem->rpwd)) {
 		DEBUG_WARNING("conncheck: remote password missing for"

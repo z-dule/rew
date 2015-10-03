@@ -233,22 +233,6 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 				      ice_cand_type2name(type), addr);
 			return EINVAL;
 		}
-
-#if 0
-		// TODO: relax the checks for base_addr, make it optional
-
-		if (!sa_isset(base_addr, SA_ALL)) {
-			DEBUG_WARNING("lcand_add: %s: "
-				      " base_addr must be set\n",
-				      ice_cand_type2name(type));
-			return EINVAL;
-		}
-		if (sa_af(addr) != sa_af(base_addr)) {
-			DEBUG_WARNING("lcand_add: AF mismatch\n");
-			return EAFNOSUPPORT;
-		}
-#endif
-
 	}
 
 	/* lookup candidate, replace if PRIO is higher */
@@ -501,13 +485,17 @@ int trice_lcands_debug(struct re_printf *pf, const struct list *lst)
 		const struct ice_lcand *cand = le->data;
 
 		err |= re_hprintf(pf, "  {%u} [tx=%3zu, rx=%3zu] "
-				  "fnd=%-8s prio=%08x %24H",
+				  "fnd=%-8s prio=%08x ",
 				  cand->attr.compid,
 				  cand->stats.n_tx,
 				  cand->stats.n_rx,
 				  cand->attr.foundation,
-				  cand->attr.prio,
-				  trice_cand_print, cand);
+				  cand->attr.prio);
+
+		if (str_isset(cand->ifname))
+			err |= re_hprintf(pf, "%s:", cand->ifname);
+
+		err |= re_hprintf(pf, "%24H", trice_cand_print, cand);
 
 		if (sa_isset(&cand->base_addr, SA_ADDR)) {
 			err |= re_hprintf(pf, " (base-addr = %J)",
@@ -521,27 +509,6 @@ int trice_lcands_debug(struct re_printf *pf, const struct list *lst)
 
 		err |= re_hprintf(pf, "\n");
 	}
-
-	return err;
-}
-
-
-int trice_cand_print(struct re_printf *pf, const struct ice_cand_attr *cand)
-{
-	int err = 0;
-
-	if (!cand)
-		return 0;
-
-	err |= re_hprintf(pf, "%s|%s", ice_cand_type2name(cand->type),
-			  net_proto2name(cand->proto));
-
-	if (cand->proto == IPPROTO_TCP) {
-
-		err |= re_hprintf(pf, ".%s", ice_tcptype_name(cand->tcptype));
-	}
-
-	err |= re_hprintf(pf, "|%J", &cand->addr);
 
 	return err;
 }

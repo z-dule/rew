@@ -65,3 +65,24 @@ enum ice_cand_type ice_cand_type_base(enum ice_cand_type type)
 	default: return type;
 	}
 }
+
+
+int trice_cand_print(struct re_printf *pf, const struct ice_cand_attr *cand)
+{
+	int err = 0;
+
+	if (!cand)
+		return 0;
+
+	err |= re_hprintf(pf, "%s|%s", ice_cand_type2name(cand->type),
+			  net_proto2name(cand->proto));
+
+	if (cand->proto == IPPROTO_TCP) {
+
+		err |= re_hprintf(pf, ".%s", ice_tcptype_name(cand->tcptype));
+	}
+
+	err |= re_hprintf(pf, "|%J", &cand->addr);
+
+	return err;
+}

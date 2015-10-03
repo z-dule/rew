@@ -74,8 +74,7 @@ done - add a new module "shim" (RFC 4571)
 done - check when adding PRFLX that EOC-flag is set/unset (not needed)
 done - move use_cand flag to checklist_start/send_conncheck ?
      - verify that APP can grab udp/tcp-sock
-
-tcpconn: tcp_conn_connect [peer=127.0.0.1:47783] (99/Cannot assign requested address)
+     - consider moving pacing-logic to application?
 
 
 

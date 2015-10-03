@@ -43,6 +43,7 @@ struct ice_lcand {
 	struct udp_sock *us;
 	struct udp_helper *uh;
 	struct tcp_sock *ts;    /* TCP for simultaneous-open or passive. */
+	char ifname[32];        /**< Network interface, for diagnostics */
 	int layer;
 	ice_cand_recv_h *recvh;
 	void *arg;

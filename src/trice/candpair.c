@@ -493,7 +493,8 @@ int trice_candpair_debug(struct re_printf *pf, const struct ice_candpair *cp)
 }
 
 
-int trice_candpairs_debug(struct re_printf *pf, bool ansi_output, const struct list *list)
+int trice_candpairs_debug(struct re_printf *pf, bool ansi_output,
+			  const struct list *list)
 {
 	struct le *le;
 	int err;
