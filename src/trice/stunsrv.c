@@ -43,15 +43,12 @@ static int handle_stun_full(struct trice *icem, struct ice_lcand *lcand,
 	enum ice_tcptype tcptype_rev;
 	int err = 0;
 
-#if ICE_TRACE
-	trice_tracef(icem,
-		    "\x1b[36m[%u] STUNSRV: Rx Binding Request [%H <--- %J]"
-		    " %s\x1b[;m\n",
-		    lcand->attr.compid,
-		    trice_cand_print, lcand,
-		    src,
-		    use_cand ? "[USE]" : "");
-#endif
+	trice_tracef(icem, 36,
+		     "[%u] STUNSRV: Rx Binding Request [%H <--- %J] %s\n",
+		     lcand->attr.compid,
+		     trice_cand_print, lcand,
+		     src,
+		     use_cand ? "[USE]" : "");
 
 	tcptype_rev = ice_tcptype_reverse(lcand->attr.tcptype);
 
@@ -123,15 +120,12 @@ static int stunsrv_ereply(struct trice *icem, struct ice_lcand *lcand,
 {
 	DEBUG_WARNING("reply error (%u %s)\n", scode, reason);
 
-#if ICE_TRACE
-	trice_tracef(icem,
-		     "\x1b[31m[%u] STUNSRV: Tx error [%J <--- %H] (%u %s)"
-		    " \x1b[;m\n",
-		    lcand->attr.compid,
-		    src,
-		    trice_cand_print, lcand,
-		    scode, reason);
-#endif
+	trice_tracef(icem, 31,
+		     "[%u] STUNSRV: Tx error [%J <--- %H] (%u %s)\n",
+		     lcand->attr.compid,
+		     src,
+		     trice_cand_print, lcand,
+		     scode, reason);
 
 	return stun_ereply(lcand->attr.proto, sock, src, presz, req,
 			   scode, reason,
@@ -219,13 +213,10 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 	if (err)
 		goto badmsg;
 
-#if ICE_TRACE
-	trice_tracef(icem,
-		    "\x1b[32m[%u] STUNSRV: Tx success respons [%H ---> %J]"
-		    " \x1b[;m\n",
-		    lcand->attr.compid,
-		    trice_cand_print, lcand, src);
-#endif
+	trice_tracef(icem, 32,
+		     "[%u] STUNSRV: Tx success respons [%H ---> %J]\n",
+		     lcand->attr.compid,
+		     trice_cand_print, lcand, src);
 
 	return stun_reply(lcand->attr.proto, sock, src, presz, req,
 			  (uint8_t *)icem->lpwd, strlen(icem->lpwd), true, 2,

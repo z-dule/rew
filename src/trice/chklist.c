@@ -99,7 +99,7 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 	ic->failh  = failh;
 	ic->arg    = arg;
 
-	tmr_start(&ic->tmr_pace, interval, pace_timeout, ic);
+	tmr_start(&ic->tmr_pace, 0, pace_timeout, ic);
 
 	icem->checklist = ic;
 

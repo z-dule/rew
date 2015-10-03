@@ -18,6 +18,7 @@ enum ice_candpair_state {
 struct trice_conf {
 	bool debug;             /**< Enable ICE debugging                  */
 	bool trace;             /**< Enable tracing of Connectivity checks */
+	bool ansi;              /**< Enable ANSI colors for debug output   */
 };
 
 struct trice;
@@ -142,7 +143,8 @@ struct list *trice_validl(const struct trice *icem);
 struct ice_candpair *trice_candpair_find_state(const struct list *lst,
 					   enum ice_candpair_state state);
 int  trice_candpair_debug(struct re_printf *pf, const struct ice_candpair *cp);
-int  trice_candpairs_debug(struct re_printf *pf, const struct list *list);
+int  trice_candpairs_debug(struct re_printf *pf, bool ansi_output,
+			   const struct list *list);
 
 
 /* ICE checklist */

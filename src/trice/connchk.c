@@ -140,6 +140,7 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 			return;
 		}
 
+		lcand->us = mem_ref(pair->lcand->us);
 		pair_prflx->conn = mem_ref(pair->conn);
 
 		/* mark the original HOST-one as failed */
@@ -158,7 +159,6 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 }
 
 
-#if ICE_TRACE
 static int print_err(struct re_printf *pf, const int *err)
 {
 	if (err && *err)
@@ -166,7 +166,6 @@ static int print_err(struct re_printf *pf, const int *err)
 
 	return 0;
 }
-#endif
 
 
 static void stunc_resp_handler(int err, uint16_t scode, const char *reason,
@@ -186,14 +185,12 @@ static void stunc_resp_handler(int err, uint16_t scode, const char *reason,
 	if (cc->term)
 		return;
 
-#if ICE_TRACE
-	trice_tracef(icem, "\x1b[%um[%u] Rx %H <--- %H '%u %s'%H\x1b[;m\n",
-		    success ? 32 : 31,
-		    pair->lcand->attr.compid,
-		    trice_cand_print, pair->lcand,
-		    trice_cand_print, pair->rcand,
-		    scode, reason, print_err, &err);
-#endif
+	trice_tracef(icem, success ? 32 : 31,
+		     "[%u] Rx %H <--- %H '%u %s'%H\n",
+		     pair->lcand->attr.compid,
+		     trice_cand_print, pair->lcand,
+		     trice_cand_print, pair->rcand,
+		     scode, reason, print_err, &err);
 
 	if (err) {
 		DEBUG_NOTICE("stun response: [%H --> %H] %m\n",
@@ -301,15 +298,13 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 		ctrl_attr = STUN_ATTR_CONTROLLED;
 	}
 
-#if ICE_TRACE
-	trice_tracef(icem, "\x1b[36m[%u] Tx [presz=%zu]"
-		     " %H ---> %H (%s) %s\x1b[;m\n",
-		    lcand->attr.compid,
+	trice_tracef(icem, 36,
+		     "[%u] Tx [presz=%zu] %H ---> %H (%s) %s\n",
+		     lcand->attr.compid,
 		     presz,
-		    trice_cand_print, cp->lcand, trice_cand_print, cp->rcand,
-		    trice_candpair_state2name(cp->state),
-		    use_cand ? "[USE]" : "");
-#endif
+		     trice_cand_print, cp->lcand, trice_cand_print, cp->rcand,
+		     trice_candpair_state2name(cp->state),
+		     use_cand ? "[USE]" : "");
 
 	/* A connectivity check MUST utilize the STUN short term credential
 	   mechanism. */

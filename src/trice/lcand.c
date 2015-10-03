@@ -383,7 +383,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 			goto out;
 		}
 	}
-	else if (type == ICE_CAND_TYPE_SRFLX) {
+	else if (type == ICE_CAND_TYPE_SRFLX ||
+		 type == ICE_CAND_TYPE_PRFLX) {
 
 		/* Special case for SRFLX UDP candidates, if he has
 		 * its own UDP-socket that can be used.
@@ -499,12 +500,9 @@ int trice_lcands_debug(struct re_printf *pf, const struct list *lst)
 
 		const struct ice_lcand *cand = le->data;
 
-		err |= re_hprintf(pf, "  {%u} us=%12p [tx=%3zu, rx=%3zu] "
+		err |= re_hprintf(pf, "  {%u} [tx=%3zu, rx=%3zu] "
 				  "fnd=%-8s prio=%08x %24H",
 				  cand->attr.compid,
-
-				  cand->us,
-
 				  cand->stats.n_tx,
 				  cand->stats.n_rx,
 				  cand->attr.foundation,
@@ -522,7 +520,6 @@ int trice_lcands_debug(struct re_printf *pf, const struct list *lst)
 		}
 
 		err |= re_hprintf(pf, "\n");
-
 	}
 
 	return err;

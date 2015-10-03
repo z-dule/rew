@@ -493,7 +493,7 @@ int trice_candpair_debug(struct re_printf *pf, const struct ice_candpair *cp)
 }
 
 
-int trice_candpairs_debug(struct re_printf *pf, const struct list *list)
+int trice_candpairs_debug(struct re_printf *pf, bool ansi_output, const struct list *list)
 {
 	struct le *le;
 	int err;
@@ -508,13 +508,15 @@ int trice_candpairs_debug(struct re_printf *pf, const struct list *list)
 		const struct ice_candpair *cp = le->data;
 		bool ansi = false;
 
-		if (cp->state == ICE_CANDPAIR_SUCCEEDED) {
-			err |= re_hprintf(pf, "\x1b[32m");
-			ansi = true;
-		}
-		else if (cp->err || cp->scode) {
-			err |= re_hprintf(pf, "\x1b[31m");
-			ansi = true;
+		if (ansi_output) {
+			if (cp->state == ICE_CANDPAIR_SUCCEEDED) {
+				err |= re_hprintf(pf, "\x1b[32m");
+				ansi = true;
+			}
+			else if (cp->err || cp->scode) {
+				err |= re_hprintf(pf, "\x1b[31m");
+				ansi = true;
+			}
 		}
 
 		err |= re_hprintf(pf, "    %H\n",

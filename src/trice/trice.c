@@ -191,10 +191,11 @@ int trice_debug(struct re_printf *pf, const struct trice *icem)
 			  trice_lcands_debug, &icem->lcandl);
 	err |= re_hprintf(pf, " Remote Candidates: %H",
 			  trice_rcands_debug, &icem->rcandl);
-	err |= re_hprintf(pf, " Check list: %H",
-			  trice_candpairs_debug, &icem->checkl);
-	err |= re_hprintf(pf, " Valid list: %H",
-			  trice_candpairs_debug, &icem->validl);
+	err |= re_hprintf(pf, " Check list: ");
+	err |= trice_candpairs_debug(pf, icem->conf.ansi, &icem->checkl);
+
+	err |= re_hprintf(pf, " Valid list: ");
+	err |= trice_candpairs_debug(pf, icem->conf.ansi, &icem->validl);
 
 	if (icem->checklist)
 		err |= trice_checklist_debug(pf, icem->checklist);
@@ -278,16 +279,24 @@ void trice_printf(struct trice *icem, const char *fmt, ...)
 }
 
 
-void trice_tracef(struct trice *icem, const char *fmt, ...)
+void trice_tracef(struct trice *icem, int color, const char *fmt, ...)
 {
 	va_list ap;
 
 	if (!icem || !icem->conf.trace)
 		return;
 
+	if (icem->conf.ansi && color) {
+		re_printf("\x1b[%dm", color);
+	}
+
 	va_start(ap, fmt);
 	(void)re_printf("%v", fmt, &ap);
 	va_end(ap);
+
+	if (icem->conf.ansi && color) {
+		re_printf("\x1b[;m");
+	}
 }
 
 

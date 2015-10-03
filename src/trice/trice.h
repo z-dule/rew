@@ -5,11 +5,6 @@
  */
 
 
-#ifndef RELEASE
-#define ICE_TRACE 1    /**< Trace connectivity checks */
-#endif
-
-
 struct ice_tcpconn;
 struct ice_conncheck;
 
@@ -147,7 +142,7 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 /* ICE media */
 void trice_switch_local_role(struct trice *ice);
 void trice_printf(struct trice *icem, const char *fmt, ...);
-void trice_tracef(struct trice *icem, const char *fmt, ...);
+void trice_tracef(struct trice *icem, int color, const char *fmt, ...);
 
 
 /* ICE checklist */
