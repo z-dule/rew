@@ -126,6 +126,8 @@ struct ice_lcand *trice_lcand_find(struct trice *icem,
 struct ice_lcand *trice_lcand_find2(const struct trice *icem,
 				    enum ice_cand_type type, int af);
 void *trice_lcand_sock(struct trice *icem, const struct ice_lcand *lcand);
+void trice_lcand_recv_packet(struct ice_lcand *lcand,
+			     const struct sa *src, struct mbuf *mb);
 
 
 /* Remote candidate */

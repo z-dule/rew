@@ -127,6 +127,11 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 			return;
 		}
 
+		if (str_isset(pair->lcand->ifname)) {
+			str_ncpy(lcand->ifname, pair->lcand->ifname,
+				 sizeof(lcand->ifname));
+		}
+
 		trice_printf(icem, "added PRFLX local candidate (%H)"
 			     " from base (%H)\n",
 			     trice_cand_print, lcand,

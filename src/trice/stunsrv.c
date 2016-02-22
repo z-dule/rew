@@ -118,7 +118,10 @@ static int stunsrv_ereply(struct trice *icem, struct ice_lcand *lcand,
 			  size_t presz, const struct stun_msg *req,
 			  uint16_t scode, const char *reason)
 {
-	DEBUG_WARNING("reply error (%u %s)\n", scode, reason);
+	DEBUG_WARNING("[%H] replying error to %J (%u %s)\n",
+		      trice_cand_print, lcand,
+		      src,
+		      scode, reason);
 
 	trice_tracef(icem, 31,
 		     "[%u] STUNSRV: Tx error [%J <--- %H] (%u %s)\n",
@@ -176,8 +179,11 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 			      icem->lufrag, &lu);
 		goto unauth;
 	}
-	if (str_isset(icem->rufrag) && pl_strcmp(&ru, icem->rufrag))
+	if (str_isset(icem->rufrag) && pl_strcmp(&ru, icem->rufrag)) {
+		DEBUG_WARNING("remote ufrag err (expected %s, actual %r)\n",
+			      icem->rufrag, &ru);
 		goto unauth;
+	}
 
 	attr = stun_msg_attr(req, STUN_ATTR_CONTROLLED);
 	if (attr) {
