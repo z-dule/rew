@@ -24,7 +24,9 @@
 
 static const struct trice_conf conf_default = {
 	false,
-	false
+	false,
+	false,
+	true
 };
 
 

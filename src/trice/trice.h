@@ -10,16 +10,16 @@ struct ice_conncheck;
 
 
 /**
- * Active Checklist. Only used by Full-ICE/Tricle-ICE
+ * Active Checklist. Only used by Full-ICE and Trickle-ICE
  */
 struct ice_checklist {
 	struct trice *icem;     /* parent */
 
-//enum ice_checkl_state state; /**< State of the checklist             */
 	struct tmr tmr_pace;         /**< Timer for pacing STUN requests     */
 	uint32_t interval;           /**< Interval in [ms]                   */
 	struct stun *stun;           /**< STUN Transport                     */
 	struct list conncheckl;
+	bool is_running;             /**< Checklist is running               */
 	bool use_cand;
 
 	/* callback handlers */

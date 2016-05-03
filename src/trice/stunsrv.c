@@ -56,16 +56,21 @@ static int handle_stun_full(struct trice *icem, struct ice_lcand *lcand,
 				 lcand->attr.proto, src);
 	if (!rcand) {
 
-		err = trice_rcand_add(&rcand, icem,
-				      lcand->attr.compid,
-				      "444", lcand->attr.proto, prio,
-				      src, ICE_CAND_TYPE_PRFLX,
-				      tcptype_rev);
-		if (err)
-			return err;
+		if (icem->conf.enable_prflx) {
 
-		trice_printf(icem, "{%u} added PRFLX remote candidate (%H)\n",
-			    lcand->attr.compid, trice_cand_print, rcand);
+			err = trice_rcand_add(&rcand, icem,
+					      lcand->attr.compid,
+					      "444", lcand->attr.proto, prio,
+					      src, ICE_CAND_TYPE_PRFLX,
+					      tcptype_rev);
+			if (err)
+				return err;
+
+			trice_printf(icem, "{%u} added PRFLX "
+				     "remote candidate (%H)\n",
+				     lcand->attr.compid,
+				     trice_cand_print, rcand);
+		}
 	}
 
 	/* already valid, skip */

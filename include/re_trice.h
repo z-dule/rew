@@ -19,6 +19,7 @@ struct trice_conf {
 	bool debug;             /**< Enable ICE debugging                  */
 	bool trace;             /**< Enable tracing of Connectivity checks */
 	bool ansi;              /**< Enable ANSI colors for debug output   */
+	bool enable_prflx;      /**< Enable Peer-Reflexive candidates      */
 };
 
 struct trice;
@@ -156,6 +157,7 @@ int  trice_checklist_start(struct trice *icem, struct stun *stun,
 			   uint32_t interval, bool use_cand,
 			   trice_estab_h *estabh, trice_failed_h *failh,
 			   void *arg);
+void trice_checklist_stop(struct trice *icem);
 bool trice_checklist_isrunning(const struct trice *icem);
 bool trice_checklist_iscompleted(const struct trice *icem);
 

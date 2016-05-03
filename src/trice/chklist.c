@@ -99,6 +99,7 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 	ic->failh  = failh;
 	ic->arg    = arg;
 
+	ic->is_running = true;
 	tmr_start(&ic->tmr_pace, 0, pace_timeout, ic);
 
 	icem->checklist = ic;
@@ -108,6 +109,20 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 		mem_deref(ic);
 
 	return err;
+}
+
+
+void trice_checklist_stop(struct trice *icem)
+{
+	struct ice_checklist *ic;
+
+	if (!icem || !icem->checklist)
+		return;
+
+	ic = icem->checklist;
+
+	ic->is_running = false;
+	tmr_cancel(&ic->tmr_pace);
 }
 
 
@@ -260,7 +275,7 @@ bool trice_checklist_isrunning(const struct trice *icem)
 
 	ic = icem->checklist;
 
-	return tmr_isrunning(&ic->tmr_pace);
+	return ic->is_running;
 }
 
 

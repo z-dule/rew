@@ -106,7 +106,8 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 		DEBUG_WARNING("handle_success: invalid params\n");
 	}
 
-	if (!trice_lcand_find(icem, -1, compid,
+	if (icem->conf.enable_prflx &&
+	    !trice_lcand_find(icem, -1, compid,
 			      pair->lcand->attr.proto, mapped_addr)) {
 
 		struct ice_lcand *lcand;
