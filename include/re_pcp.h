@@ -62,10 +62,10 @@ enum pcp_result {
 };
 
 enum pcp_option_code {
-	PCP_OPTION_THIRD_PARTY    = 1,
-	PCP_OPTION_PREFER_FAILURE = 2,
-	PCP_OPTION_FILTER         = 3,
-	PCP_OPTION_DESCRIPTION    = 4,  /* XXX: update with IANA code */
+	PCP_OPTION_THIRD_PARTY    =   1,
+	PCP_OPTION_PREFER_FAILURE =   2,
+	PCP_OPTION_FILTER         =   3,
+	PCP_OPTION_DESCRIPTION    = 128,  /* RFC 7220 */
 };
 
 /* forward declarations */
