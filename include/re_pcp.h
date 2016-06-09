@@ -146,7 +146,7 @@ struct pcp_conf {
 
 struct pcp_request;
 
-typedef void (pcp_resp_h)(int err, const struct pcp_msg *msg, void *arg);
+typedef void (pcp_resp_h)(int err, struct pcp_msg *msg, void *arg);
 
 int pcp_request(struct pcp_request **reqp, const struct pcp_conf *conf,
 		const struct sa *pcp_server, enum pcp_opcode opcode,
