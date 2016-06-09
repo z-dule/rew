@@ -67,11 +67,11 @@ static int pcp_peer_encode(struct mbuf *mb, const struct pcp_peer *peer)
 	/* Protocol MUST NOT be zero.
 	 * Internal port MUST NOT be zero.
 	 */
-	if (!peer->proto || !peer->int_port)
+	if (!peer->map.proto || !peer->map.int_port)
 		return EPROTO;
 
 	/* note: the MAP and PEER opcodes are quite similar */
-	err = pcp_map_encode(mb, (struct pcp_map *)peer);
+	err = pcp_map_encode(mb, &peer->map);
 	if (err)
 		return err;
 

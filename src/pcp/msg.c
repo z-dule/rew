@@ -48,7 +48,7 @@ static int pcp_peer_decode(struct pcp_peer *peer, struct mbuf *mb)
 		return EBADMSG;
 
 	/* note: the MAP and PEER opcodes are quite similar */
-	err = pcp_map_decode((struct pcp_map *)peer, mb);
+	err = pcp_map_decode(&peer->map, mb);
 	if (err)
 		return err;
 
@@ -309,6 +309,22 @@ int pcp_msg_printhdr(struct re_printf *pf, const struct pcp_msg *msg)
 }
 
 
+static int pcp_map_print(struct re_printf *pf, const struct pcp_map *map)
+{
+	if (!map)
+		return 0;
+
+	return re_hprintf(pf,
+			  " nonce    = %w\n protocol = %s\n"
+			  " int_port = %u\n ext_addr = %J\n",
+			  map->nonce, sizeof(map->nonce),
+			  pcp_proto_name(map->proto),
+			  map->int_port,
+			  &map->ext_addr);
+}
+
+
+
 int pcp_msg_print(struct re_printf *pf, const struct pcp_msg *msg)
 {
 	int err;
@@ -322,25 +338,11 @@ int pcp_msg_print(struct re_printf *pf, const struct pcp_msg *msg)
 	switch (msg->hdr.opcode) {
 
 	case PCP_MAP:
-		err |= re_hprintf(pf,
-				  " nonce    = %w\n protocol = %s\n"
-				  " int_port = %u\n ext_addr = %J\n",
-				  msg->pld.map.nonce,
-				  sizeof(msg->pld.map.nonce),
-				  pcp_proto_name(msg->pld.map.proto),
-				  msg->pld.map.int_port,
-				  &msg->pld.map.ext_addr);
+		err |= pcp_map_print(pf, &msg->pld.map);
 		break;
 
 	case PCP_PEER:
-		err |= re_hprintf(pf,
-				  " nonce    = %w\n protocol = %s\n"
-				  " int_port = %u\n ext_addr = %J\n",
-				  msg->pld.peer.nonce,
-				  sizeof(msg->pld.peer.nonce),
-				  pcp_proto_name(msg->pld.peer.proto),
-				  msg->pld.peer.int_port,
-				  &msg->pld.peer.ext_addr);
+		err |= pcp_map_print(pf, &msg->pld.peer.map);
 		err |= re_hprintf(pf, " remote_peer = %J\n",
 				  &msg->pld.peer.remote_addr);
 		break;

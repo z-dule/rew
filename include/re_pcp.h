@@ -121,11 +121,8 @@ struct pcp_msg {
 			struct sa ext_addr;          /**< External Address */
 		} map;
 		struct pcp_peer {
-			uint8_t nonce[PCP_NONCE_SZ];
-			uint8_t proto;
-			uint16_t int_port;
-			struct sa ext_addr;
-			struct sa remote_addr;
+			struct pcp_map map;          /**< Common with MAP  */
+			struct sa remote_addr;       /**< Remote address   */
 		} peer;
 	} pld;
 
