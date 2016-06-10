@@ -324,7 +324,6 @@ static int pcp_map_print(struct re_printf *pf, const struct pcp_map *map)
 }
 
 
-
 int pcp_msg_print(struct re_printf *pf, const struct pcp_msg *msg)
 {
 	int err;
