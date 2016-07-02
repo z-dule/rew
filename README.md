@@ -2,6 +2,17 @@
 A staging library to libre with experimental code
 
 
+# Building
+
+You need to install libre first (http://www.creytiv.com/re.html)
+Then:
+
+```
+$ make
+$ sudo make install
+```
+
+
 ## Modules:
 
 The following modules are implemented:
