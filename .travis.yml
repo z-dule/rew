@@ -1,0 +1,24 @@
+language: c
+
+os:
+    - linux
+    - osx
+
+compiler:
+    - gcc
+    - clang
+
+before_install:
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq ; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then brew update             ; fi
+
+install:
+    - wget "http://www.creytiv.com/pub/re-0.4.17.tar.gz"
+    - tar -xzf re-0.4.17.tar.gz
+    - cd re-0.4.17 && make && sudo make install && cd ..
+    - sudo ldconfig
+    - wget "https://github.com/alfredh/pytools/raw/master/ccheck.py"
+
+script: 
+    - make EXTRA_CFLAGS=-Werror
+    - python2 ccheck.py
