@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/alfredh/rew.svg?branch=master)](https://travis-ci.org/alfredh/rew)
 
-
 A staging library to libre with experimental code
 
 
