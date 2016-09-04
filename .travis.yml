@@ -21,4 +21,4 @@ install:
 
 script: 
     - make EXTRA_CFLAGS=-Werror
-    - python2 ccheck.py
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then python2 ccheck.py ; fi
