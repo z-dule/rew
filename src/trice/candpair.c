@@ -121,7 +121,7 @@ int trice_candpair_alloc(struct ice_candpair **cpp, struct trice *icem,
 	cp->rcand = mem_ref(rcand);
 	cp->state = ICE_CANDPAIR_FROZEN;
 
-	candpair_set_pprio(cp, icem->controlling);
+	candpair_set_pprio(cp, icem->lrole == ICE_ROLE_CONTROLLING);
 
 	list_add_sorted(&icem->checkl, cp);
 

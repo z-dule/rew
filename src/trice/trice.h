@@ -41,7 +41,7 @@ struct ice_checklist {
  */
 struct trice {
 	struct trice_conf conf;
-	bool controlling;            /**< Local role                         */
+	enum ice_role lrole;         /**< Local role                         */
 	uint64_t tiebrk;             /**< Tie-break value for roleconflict   */
 
 	/* stun/authentication */

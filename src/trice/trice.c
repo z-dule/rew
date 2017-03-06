@@ -67,7 +67,7 @@ static void trice_destructor(void *data)
  */
 
 int trice_alloc(struct trice **icemp, const struct trice_conf *conf,
-	       bool controlling,
+	       enum ice_role role,
 	       const char *lufrag, const char *lpwd)
 {
 	struct trice *icem;
@@ -91,9 +91,8 @@ int trice_alloc(struct trice **icemp, const struct trice_conf *conf,
 	list_init(&icem->checkl);
 	list_init(&icem->validl);
 
-	icem->controlling = controlling;
+	icem->lrole = role;
 	icem->tiebrk = rand_u64();
-
 
 	err |= str_dup(&icem->lufrag, lufrag);
 	err |= str_dup(&icem->lpwd, lpwd);
@@ -151,18 +150,18 @@ struct trice_conf *trice_conf(struct trice *icem)
 }
 
 
-void trice_set_controlling(struct trice *trice, bool controlling)
+void trice_set_role(struct trice *trice, enum ice_role role)
 {
 	if (!trice)
 		return;
 
-	trice->controlling = controlling;
+	trice->lrole = role;
 }
 
 
 bool trice_is_controlling(const struct trice *icem)
 {
-	return icem ? icem->controlling : false;
+	return icem ? icem->lrole == ICE_ROLE_CONTROLLING : false;
 }
 
 
@@ -184,8 +183,8 @@ int trice_debug(struct re_printf *pf, const struct trice *icem)
 
 	err |= re_hprintf(pf, "----- ICE Media <%p> -----\n", icem);
 
-	err |= re_hprintf(pf, " local_role=Controll%s\n",
-			  icem->controlling ? "ing" : "ed");
+	err |= re_hprintf(pf, " local_role=%s\n",
+			  ice_role2name(icem->lrole));
 	err |= re_hprintf(pf, " local_ufrag=\"%s\" local_pwd=\"%s\"\n",
 			  icem->lufrag, icem->lpwd);
 
@@ -304,13 +303,28 @@ void trice_tracef(struct trice *icem, int color, const char *fmt, ...)
 
 void trice_switch_local_role(struct trice *ice)
 {
+	enum ice_role new_role;
+
 	if (!ice)
 		return;
 
-	ice->controlling = !ice->controlling;
+	if (ice->lrole == ICE_ROLE_CONTROLLING)
+		new_role = ICE_ROLE_CONTROLLED;
+	else if (ice->lrole == ICE_ROLE_CONTROLLED)
+		new_role = ICE_ROLE_CONTROLLING;
+	else {
+		DEBUG_WARNING("unknown role\n");
+		new_role = ICE_ROLE_UNKNOWN;
+	}
+
+	DEBUG_NOTICE("Switch local role from %s to %s\n",
+		     ice_role2name(ice->lrole), ice_role2name(new_role));
+
+	ice->lrole = new_role;
 
 	/* recompute pair priorities for all media streams */
-	trice_candpair_prio_order(&ice->checkl, ice->controlling);
+	trice_candpair_prio_order(&ice->checkl,
+				  ice->lrole == ICE_ROLE_CONTROLLING);
 }
 
 

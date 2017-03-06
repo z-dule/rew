@@ -287,12 +287,20 @@ int trice_conncheck_stun_request(struct ice_checklist *ic,
 	prio_prflx = ice_cand_calc_prio(ICE_CAND_TYPE_PRFLX, 0,
 					lcand->attr.compid);
 
-	if (icem->controlling) {
+	switch (icem->lrole) {
+
+	case ICE_ROLE_CONTROLLING:
 		ctrl_attr = STUN_ATTR_CONTROLLING;
 		use_cand = cc_use_cand;
-	}
-	else {
+		break;
+
+	case ICE_ROLE_CONTROLLED:
 		ctrl_attr = STUN_ATTR_CONTROLLED;
+		break;
+
+	default:
+		DEBUG_WARNING("conncheck: invalid local role\n");
+		return EINVAL;
 	}
 
 	trice_tracef(icem, 36,

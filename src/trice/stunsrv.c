@@ -91,7 +91,7 @@ static int handle_stun_full(struct trice *icem, struct ice_lcand *lcand,
 
 	/* 7.2.1.5.  Updating the Nominated Flag */
 	if (use_cand) {
-		if (!icem->controlling) {
+		if (icem->lrole == ICE_ROLE_CONTROLLED) {
 
 			pair->nominated = true;
 		}
@@ -150,7 +150,7 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 {
 	struct stun_attr *attr;
 	struct pl lu, ru;
-	bool remote_controlling;
+	enum ice_role remote_role = ICE_ROLE_UNKNOWN;
 	uint64_t tiebrk = 0;
 	uint32_t prio_prflx;
 	bool use_cand = false;
@@ -194,17 +194,20 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 
 	attr = stun_msg_attr(req, STUN_ATTR_CONTROLLED);
 	if (attr) {
-		remote_controlling = false;
+		remote_role = ICE_ROLE_CONTROLLED;
 		tiebrk = attr->v.uint64;
 	}
 
 	attr = stun_msg_attr(req, STUN_ATTR_CONTROLLING);
 	if (attr) {
-		remote_controlling = true;
+		remote_role = ICE_ROLE_CONTROLLING;
 		tiebrk = attr->v.uint64;
 	}
 
-	if (remote_controlling == icem->controlling) {
+	if (remote_role == icem->lrole) {
+		DEBUG_NOTICE("role conflict detected (both %s)\n",
+			     ice_role2name(remote_role));
+
 		if (icem->tiebrk >= tiebrk)
 			trice_switch_local_role(icem);
 		else
