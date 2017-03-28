@@ -34,10 +34,12 @@ MODULES += pcp
 LIBS    += -lm
 
 INSTALL := install
+ifndef PREFIX
 ifeq ($(DESTDIR),)
 PREFIX  := /usr/local
 else
 PREFIX  := /usr
+endif
 endif
 ifeq ($(LIBDIR),)
 LIBDIR  := $(PREFIX)/lib
@@ -76,6 +78,20 @@ ifneq ($(RANLIB),)
 	@$(RANLIB) $@
 endif
 
+librew.pc:
+	@echo 'prefix='$(PREFIX) > librew.pc
+	@echo 'exec_prefix=$${prefix}' >> librew.pc
+	@echo 'libdir=$${prefix}/lib' >> librew.pc
+	@echo 'includedir=$${prefix}/include/rew' >> librew.pc
+	@echo '' >> librew.pc
+	@echo 'Name: librew' >> librew.pc
+	@echo 'Description: ' >> librew.pc
+	@echo 'Version: '$(VERSION) >> librew.pc
+	@echo 'URL: https://github.com/alfredh/rew' >> librew.pc
+	@echo 'Libs: -L$${libdir} -lrew' >> librew.pc
+	@echo 'Libs.private: -L$${libdir} -lrew ${LIBS}' >> librew.pc
+	@echo 'Cflags: -I$${includedir}' >> librew.pc
+
 $(BUILD)/%.o: src/%.c $(BUILD) Makefile $(MK) $(MODMKS)
 	@echo "  CC      $@"
 	@$(CC) $(CFLAGS) -c $< -o $@ $(DFLAGS)
@@ -93,27 +109,32 @@ $(BUILD): Makefile $(MK) $(MODMKS)
 
 .PHONY: clean
 clean:
-	@rm -rf $(SHARED) $(STATIC) test.d test.o test $(BUILD)
+	@rm -rf $(SHARED) $(STATIC) librew.pc test.d test.o test $(BUILD)
 
 
-install: $(SHARED) $(STATIC)
-	@mkdir -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(INCDIR)
+install: $(SHARED) $(STATIC) librew.pc
+	@mkdir -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(LIBDIR)/pkgconfig \
+		$(DESTDIR)$(INCDIR)
 	$(INSTALL) -m 0644 $(shell find include -name "*.h") \
 		$(DESTDIR)$(INCDIR)
 	$(INSTALL) -m 0755 $(SHARED) $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -m 0755 $(STATIC) $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -m 0644 librew.pc $(DESTDIR)$(LIBDIR)/pkgconfig
 
-install-static: $(STATIC)
-	@mkdir -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(INCDIR)
+install-static: $(STATIC) librew.pc
+	@mkdir -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(LIBDIR)/pkgconfig \
+		$(DESTDIR)$(INCDIR)
 	$(INSTALL) -m 0644 $(shell find include -name "*.h") \
 		$(DESTDIR)$(INCDIR)
 	$(INSTALL) -m 0755 $(STATIC) $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -m 0644 librew.pc $(DESTDIR)$(LIBDIR)/pkgconfig
 
 .PHONY: uninstall
 uninstall:
 	@rm -rf $(DESTDIR)$(INCDIR)
 	@rm -f $(DESTDIR)$(LIBDIR)/$(SHARED)
 	@rm -f $(DESTDIR)$(LIBDIR)/$(STATIC)
+	@rm -f $(DESTDIR)$(LIBDIR)/pkgconfig/librew.pc
 
 -include test.d
 
