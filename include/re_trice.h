@@ -5,15 +5,6 @@
  */
 
 
-/** Defines the ICE Candidate-pair state */
-enum ice_candpair_state {
-	ICE_CANDPAIR_FROZEN = 0, /**< Frozen state (default)                 */
-	ICE_CANDPAIR_WAITING=1,  /**< Waiting to become highest on list      */
-	ICE_CANDPAIR_INPROGRESS, /**< In-Progress state;transaction in progr.*/
-	ICE_CANDPAIR_SUCCEEDED,  /**< Succeeded state; successful check      */
-	ICE_CANDPAIR_FAILED      /**< Failed state; check failed             */
-};
-
 /** ICE Configuration */
 struct trice_conf {
 	bool debug;             /**< Enable ICE debugging                  */
