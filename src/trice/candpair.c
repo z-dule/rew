@@ -113,6 +113,11 @@ int trice_candpair_alloc(struct ice_candpair **cpp, struct trice *icem,
 	if (!icem || !lcand || !rcand)
 		return EINVAL;
 
+	if (icem->lrole == ICE_ROLE_UNKNOWN) {
+		DEBUG_WARNING("trice_candpair_alloc: invalid local role!\n");
+		return EINVAL;
+	}
+
 	cp = mem_zalloc(sizeof(*cp), candpair_destructor);
 	if (!cp)
 		return ENOMEM;
@@ -381,6 +386,12 @@ int trice_candpair_with_local(struct trice *icem, struct ice_lcand *lcand)
 	struct le *le;
 	int err = 0;
 
+	if (icem->lrole == ICE_ROLE_UNKNOWN) {
+		DEBUG_WARNING("trice_candpair_with_local: invalid local role!"
+					  "\n");
+		return EINVAL;
+	}
+
 	for (le = list_head(lst); le; le = le->next) {
 
 		struct ice_rcand *rcand = le->data;
@@ -426,6 +437,12 @@ int trice_candpair_with_remote(struct trice *icem, struct ice_rcand *rcand)
 	struct list *lst = &icem->lcandl;
 	struct le *le;
 	int err = 0;
+
+	if (icem->lrole == ICE_ROLE_UNKNOWN) {
+		DEBUG_WARNING("trice_candpair_with_remote: invalid local role!"
+					  "\n");
+		return EINVAL;
+	}
 
 	for (le = list_head(lst); le; le = le->next) {
 

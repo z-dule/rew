@@ -90,8 +90,8 @@ int  trice_alloc(struct trice **icemp, const struct trice_conf *conf,
 int  trice_set_remote_ufrag(struct trice *icem, const char *rufrag);
 int  trice_set_remote_pwd(struct trice *icem, const char *rpwd);
 int  trice_set_software(struct trice *icem, const char *sw);
-void trice_set_role(struct trice *trice, enum ice_role role);
-bool trice_is_controlling(const struct trice *icem);
+int  trice_set_role(struct trice *trice, enum ice_role role);
+enum ice_role trice_local_role(const struct trice *icem);
 int  trice_debug(struct re_printf *pf, const struct trice *icem);
 struct trice_conf *trice_conf(struct trice *icem);
 

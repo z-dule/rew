@@ -40,6 +40,7 @@ static void trice_destructor(void *data)
 	list_flush(&icem->checkl);
 	list_flush(&icem->lcandl);
 	list_flush(&icem->rcandl);
+	list_flush(&icem->reqbufl);
 
 	list_flush(&icem->connl);
 
@@ -56,7 +57,7 @@ static void trice_destructor(void *data)
  *
  * @param icemp       Pointer to allocated ICE Media object
  * @param conf        ICE configuration
- * @param controlling True for controlling role, false for controlled
+ * @param role        Local role
  * @param lufrag      Local username fragment
  * @param lpwd        Local password
  * @param estabh      Candidate pair established handler
@@ -86,6 +87,7 @@ int trice_alloc(struct trice **icemp, const struct trice_conf *conf,
 		return ENOMEM;
 
 	icem->conf = conf ? *conf : conf_default;
+	list_init(&icem->reqbufl);
 	list_init(&icem->lcandl);
 	list_init(&icem->rcandl);
 	list_init(&icem->checkl);
@@ -150,18 +152,120 @@ struct trice_conf *trice_conf(struct trice *icem)
 }
 
 
-void trice_set_role(struct trice *trice, enum ice_role role)
+/* note: call this ONCE AFTER role has been set */
+static void trice_create_candpairs(struct trice *icem)
 {
-	if (!trice)
-		return;
+	struct list *lst;
+	struct le *le;
+	bool refresh_checklist = false;
+	int err;
 
-	trice->lrole = role;
+	lst = &icem->lcandl;
+	for (le = list_head(lst); le; le = le->next) {
+		struct ice_lcand *lcand = le->data;
+
+		/* pair this local-candidate with all existing
+		 * remote-candidates */
+		err = trice_candpair_with_local(icem, lcand);
+		if (err) {
+			DEBUG_WARNING("trice_candpair_with_local: %m\n", err);
+		}
+		else {
+			refresh_checklist = true;
+		}
+	}
+
+	lst = &icem->rcandl;
+	for (le = list_head(lst); le; le = le->next) {
+		struct ice_rcand *rcand = le->data;
+
+		/* pair this remote-candidate with all existing
+		 * local-candidates */
+		err = trice_candpair_with_remote(icem, rcand);
+		if (err) {
+			DEBUG_WARNING("trice_candpair_with_remote: %m\n", err);
+		}
+		else {
+			refresh_checklist = true;
+		}
+	}
+
+	/* new pair -- refresh the checklist timer */
+	if (refresh_checklist)
+		trice_checklist_refresh(icem);
 }
 
 
-bool trice_is_controlling(const struct trice *icem)
+/* note: call this AFTER role has been set AND candidate pairs
+ * have been created */
+static void trice_reqbuf_process(struct trice *icem)
 {
-	return icem ? icem->lrole == ICE_ROLE_CONTROLLING : false;
+	struct list *lst;
+	struct le *le;
+
+	lst = &icem->reqbufl;
+	for (le = list_head(lst); le; le = le->next) {
+		struct trice_reqbuf *reqbuf = le->data;
+		DEBUG_PRINTF("trice_reqbuf_process: Processing buffered "
+			     "request (%zu bytes)\n",
+			     mbuf_get_left(reqbuf->req->mb));
+
+		(void)trice_stund_recv_role_set(icem, reqbuf->lcand,
+				reqbuf->sock, &reqbuf->src, reqbuf->req,
+				reqbuf->presz);
+	}
+
+	list_flush(&icem->reqbufl);
+}
+
+
+/**
+ * Set the local role
+ * Once the role has been set to CONTROLLING or CONTROLLED, the role
+ * cannot be changed.
+ *
+ * @param icem ICE Media object
+ * @param role New local role
+ *
+ * @return 0 if success, otherwise errorcode
+ */
+int trice_set_role(struct trice *trice, enum ice_role role)
+{
+	if (!trice)
+		return EINVAL;
+
+	/* Cannot change the role once it has been set */
+	if (trice->lrole != ICE_ROLE_UNKNOWN) {
+		DEBUG_WARNING("trice_set_role: role already set!\n");
+		return EINVAL;
+	}
+
+	trice->lrole = role;
+
+	/* Create candidate pairs and process pending requests
+	 * once the role has been determined */
+	if (role != ICE_ROLE_UNKNOWN) {
+		trice_create_candpairs(trice);
+		trice_reqbuf_process(trice);
+	}
+
+	return 0;
+}
+
+
+/**
+ * Get the local role
+ *
+ * @param icem  ICE Media object
+ *
+ * @return Local role
+ */
+enum ice_role trice_local_role(const struct trice *icem)
+{
+	if (!icem)
+		return ICE_ROLE_UNKNOWN;
+
+	return icem->lrole;
 }
 
 
@@ -197,6 +301,9 @@ int trice_debug(struct re_printf *pf, const struct trice *icem)
 
 	err |= re_hprintf(pf, " Valid list: ");
 	err |= trice_candpairs_debug(pf, icem->conf.ansi, &icem->validl);
+
+	err |= re_hprintf(pf, " Buffered STUN Requests: (%u)\n",
+			  list_count(&icem->reqbufl));
 
 	if (icem->checklist)
 		err |= trice_checklist_debug(pf, icem->checklist);
@@ -308,13 +415,19 @@ void trice_switch_local_role(struct trice *ice)
 	if (!ice)
 		return;
 
-	if (ice->lrole == ICE_ROLE_CONTROLLING)
+	switch (ice->lrole) {
+
+	case ICE_ROLE_CONTROLLING:
 		new_role = ICE_ROLE_CONTROLLED;
-	else if (ice->lrole == ICE_ROLE_CONTROLLED)
+		break;
+
+	case ICE_ROLE_CONTROLLED:
 		new_role = ICE_ROLE_CONTROLLING;
-	else {
-		DEBUG_WARNING("unknown role\n");
-		new_role = ICE_ROLE_UNKNOWN;
+		break;
+
+	default:
+		DEBUG_WARNING("trice_switch_local_role: local role unknown\n");
+		return;
 	}
 
 	DEBUG_NOTICE("Switch local role from %s to %s\n",
@@ -368,4 +481,41 @@ bool trice_stun_process(struct trice *icem, struct ice_lcand *lcand,
 	mem_deref(msg);
 
 	return true;
+}
+
+
+static void trice_reqbuf_destructor(void *data)
+{
+	struct trice_reqbuf *reqbuf = data;
+
+	mem_deref(reqbuf->req);
+	mem_deref(reqbuf->sock);
+	mem_deref(reqbuf->lcand);
+}
+
+
+int trice_reqbuf_append(struct trice *icem, struct ice_lcand *lcand,
+		    void *sock, const struct sa *src,
+		    struct stun_msg *req, size_t presz)
+{
+	struct trice_reqbuf *reqbuf;
+
+	if (!icem || !src ||!req)
+		return EINVAL;
+
+	reqbuf = mem_zalloc(sizeof(*reqbuf), trice_reqbuf_destructor);
+	if (!reqbuf)
+		return ENOMEM;
+
+	DEBUG_PRINTF("trice_reqbuf_append: Buffering request (%zu bytes)\n",
+		     mbuf_get_left(req->mb));
+	reqbuf->lcand = mem_ref(lcand);
+	reqbuf->sock = mem_ref(sock);
+	reqbuf->src = *src;
+	reqbuf->req = mem_ref(req);
+	reqbuf->presz = presz;
+
+	list_append(&icem->reqbufl, &reqbuf->le, reqbuf);
+
+	return 0;
 }

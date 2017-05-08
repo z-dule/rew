@@ -113,13 +113,16 @@ int trice_rcand_add(struct ice_rcand **rcandp, struct trice *icem,
 	if (err)
 		goto out;
 
-	/* pair this remote-candidate with all existing local-candidates */
-	err = trice_candpair_with_remote(icem, rcand);
-	if (err)
-		goto out;
+	if (icem->lrole != ICE_ROLE_UNKNOWN) {
+		/* pair this remote-candidate with all existing
+		 * local-candidates */
+		err = trice_candpair_with_remote(icem, rcand);
+		if (err)
+			goto out;
 
-	/* new pair -- refresh the checklist timer */
-	trice_checklist_refresh(icem);
+		/* new pair -- refresh the checklist timer */
+		trice_checklist_refresh(icem);
+	}
 
  out:
 	if (err)

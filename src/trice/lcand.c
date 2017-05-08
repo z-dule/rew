@@ -389,13 +389,16 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 
 	lcand->layer = layer;
 
-	/* pair this local-candidate with all existing remote-candidates */
-	err = trice_candpair_with_local(icem, lcand);
-	if (err)
-		goto out;
+	if (icem->lrole != ICE_ROLE_UNKNOWN) {
+		/* pair this local-candidate with all existing
+		 * remote-candidates */
+		err = trice_candpair_with_local(icem, lcand);
+		if (err)
+			goto out;
 
-	/* new pair -- refresh the checklist timer */
-	trice_checklist_refresh(icem);
+		/* new pair -- refresh the checklist timer */
+		trice_checklist_refresh(icem);
+	}
 
  out:
 	if (err)

@@ -54,12 +54,27 @@ struct trice {
 	struct list rcandl;          /**< remote candidates (add order)      */
 	struct list checkl;          /**< Check List of cand pairs (sorted)  */
 	struct list validl;          /**< Valid List of cand pairs (sorted)  */
+	struct list reqbufl;         /**< buffered incoming requests         */
 
 	struct ice_checklist *checklist;
 
 	struct list connl;           /**< TCP-connections for all components */
 
 	char *sw;
+};
+
+
+/**
+ * Holds an unhandled STUN request message that will be handled once
+ * the role has been determined.
+ */
+struct trice_reqbuf {
+	struct le le;                /**< list element                       */
+	struct ice_lcand *lcand;     /**< corresponding local candidate      */
+	void *sock;                  /**< request's socket                   */
+	struct sa src;               /**< source address                     */
+	struct stun_msg *req;        /**< buffered STUN request              */
+	size_t presz;                /**< number of bytes in preamble        */
 };
 
 
@@ -137,6 +152,9 @@ const char    *trice_candpair_state2name(enum ice_candpair_state st);
 int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 		    void *sock, const struct sa *src,
 		    struct stun_msg *req, size_t presz);
+int trice_stund_recv_role_set(struct trice *icem, struct ice_lcand *lcand,
+		    void *sock, const struct sa *src,
+		    struct stun_msg *req, size_t presz);
 
 
 /* ICE media */
@@ -180,3 +198,6 @@ int trice_conn_debug(struct re_printf *pf, const struct ice_tcpconn *conn);
 bool trice_stun_process(struct trice *icem, struct ice_lcand *lcand,
 		       int proto, void *sock, const struct sa *src,
 		       struct mbuf *mb);
+int trice_reqbuf_append(struct trice *icem, struct ice_lcand *lcand,
+		    void *sock, const struct sa *src,
+		    struct stun_msg *req, size_t presz);

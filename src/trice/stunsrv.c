@@ -150,10 +150,6 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 {
 	struct stun_attr *attr;
 	struct pl lu, ru;
-	enum ice_role remote_role = ICE_ROLE_UNKNOWN;
-	uint64_t tiebrk = 0;
-	uint32_t prio_prflx;
-	bool use_cand = false;
 	int err;
 
 	/* RFC 5389: Fingerprint errors are silently discarded */
@@ -191,6 +187,32 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 			      icem->rufrag, &ru);
 		goto unauth;
 	}
+
+	if (icem->lrole == ICE_ROLE_UNKNOWN)
+		return trice_reqbuf_append(icem, lcand, sock, src, req, presz);
+
+	return trice_stund_recv_role_set(icem, lcand, sock, src, req, presz);
+
+ badmsg:
+	return stunsrv_ereply(icem, lcand, sock, src, presz, req,
+			      400, "Bad Request");
+
+ unauth:
+	return stunsrv_ereply(icem, lcand, sock, src, presz, req,
+			      401, "Unauthorized");
+}
+
+
+int trice_stund_recv_role_set(struct trice *icem, struct ice_lcand *lcand,
+		    void *sock, const struct sa *src,
+		    struct stun_msg *req, size_t presz)
+{
+	struct stun_attr *attr;
+	enum ice_role remote_role = ICE_ROLE_UNKNOWN;
+	uint64_t tiebrk = 0;
+	uint32_t prio_prflx;
+	int err;
+	bool use_cand = false;
 
 	attr = stun_msg_attr(req, STUN_ATTR_CONTROLLED);
 	if (attr) {
@@ -243,10 +265,6 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
  badmsg:
 	return stunsrv_ereply(icem, lcand, sock, src, presz, req,
 			      400, "Bad Request");
-
- unauth:
-	return stunsrv_ereply(icem, lcand, sock, src, presz, req,
-			      401, "Unauthorized");
 
  conflict:
 	return stunsrv_ereply(icem, lcand, sock, src, presz, req,

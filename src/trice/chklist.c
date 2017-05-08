@@ -57,6 +57,11 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 	if (!icem)
 		return EINVAL;
 
+	if (icem->lrole == ICE_ROLE_UNKNOWN) {
+		DEBUG_WARNING("trice_checklist_start: missing local role!\n");
+		return EINVAL;
+	}
+
 	if (icem->checklist) {
 		ic = icem->checklist;
 
@@ -199,6 +204,12 @@ void trice_checklist_set_waiting(struct trice *icem)
 
 	if (!icem)
 		return;
+
+	if (icem->lrole == ICE_ROLE_UNKNOWN) {
+		DEBUG_WARNING("trice_checklist_set_waiting: invalid local"
+					  "role!\n");
+		return;
+	}
 
 	/*
 	For all pairs with the same foundation, it sets the state of
