@@ -200,29 +200,28 @@ static void trice_create_candpairs(struct trice *icem)
  * have been created */
 static void trice_reqbuf_process(struct trice *icem)
 {
-	struct list *lst;
 	struct le *le;
 
-	lst = &icem->reqbufl;
-	for (le = list_head(lst); le; le = le->next) {
+	le = list_head(&icem->reqbufl);
+	while (le) {
 		struct trice_reqbuf *reqbuf = le->data;
+		le = le->next;
+
 		DEBUG_PRINTF("trice_reqbuf_process: Processing buffered "
-			     "request (%zu bytes)\n",
-			     mbuf_get_left(reqbuf->req->mb));
+			     "request\n");
 
 		(void)trice_stund_recv_role_set(icem, reqbuf->lcand,
 				reqbuf->sock, &reqbuf->src, reqbuf->req,
 				reqbuf->presz);
-	}
 
-	list_flush(&icem->reqbufl);
+		mem_deref(reqbuf);
+	}
 }
 
 
 /**
- * Set the local role
- * Once the role has been set to CONTROLLING or CONTROLLED, the role
- * cannot be changed.
+ * Set the local role to either CONTROLLING or CONTROLLED.
+ * Note: The role cannot be changed manually after it has been set.
  *
  * @param icem ICE Media object
  * @param role New local role
@@ -234,20 +233,22 @@ int trice_set_role(struct trice *trice, enum ice_role role)
 	if (!trice)
 		return EINVAL;
 
-	/* Cannot change the role once it has been set */
-	if (trice->lrole != ICE_ROLE_UNKNOWN) {
-		DEBUG_WARNING("trice_set_role: role already set!\n");
+	/* Cannot change the role to unknown */
+	if (role == ICE_ROLE_UNKNOWN)
 		return EINVAL;
-	}
+
+	if (trice->lrole == role)
+		return 0;
+
+	/* Cannot switch role manually once it has been set */
+	if (trice->lrole != ICE_ROLE_UNKNOWN)
+		return EINVAL;
 
 	trice->lrole = role;
 
-	/* Create candidate pairs and process pending requests
-	 * once the role has been determined */
-	if (role != ICE_ROLE_UNKNOWN) {
-		trice_create_candpairs(trice);
-		trice_reqbuf_process(trice);
-	}
+	/* Create candidate pairs and process pending requests */
+	trice_create_candpairs(trice);
+	trice_reqbuf_process(trice);
 
 	return 0;
 }
@@ -488,6 +489,8 @@ static void trice_reqbuf_destructor(void *data)
 {
 	struct trice_reqbuf *reqbuf = data;
 
+	list_unlink(&reqbuf->le);
+
 	mem_deref(reqbuf->req);
 	mem_deref(reqbuf->sock);
 	mem_deref(reqbuf->lcand);
@@ -507,8 +510,7 @@ int trice_reqbuf_append(struct trice *icem, struct ice_lcand *lcand,
 	if (!reqbuf)
 		return ENOMEM;
 
-	DEBUG_PRINTF("trice_reqbuf_append: Buffering request (%zu bytes)\n",
-		     mbuf_get_left(req->mb));
+	DEBUG_PRINTF("trice_reqbuf_append: Buffering request\n");
 	reqbuf->lcand = mem_ref(lcand);
 	reqbuf->sock = mem_ref(sock);
 	reqbuf->src = *src;

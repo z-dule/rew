@@ -188,8 +188,13 @@ int trice_stund_recv(struct trice *icem, struct ice_lcand *lcand,
 		goto unauth;
 	}
 
-	if (icem->lrole == ICE_ROLE_UNKNOWN)
-		return trice_reqbuf_append(icem, lcand, sock, src, req, presz);
+	if (icem->lrole == ICE_ROLE_UNKNOWN) {
+		err = trice_reqbuf_append(icem, lcand, sock, src, req, presz);
+		if (err) {
+			DEBUG_WARNING("unable to buffer STUN request: %m\n",
+				      err);
+		}
+	}
 
 	return trice_stund_recv_role_set(icem, lcand, sock, src, req, presz);
 
