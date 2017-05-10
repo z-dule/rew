@@ -231,6 +231,9 @@ int trice_stund_recv_role_set(struct trice *icem, struct ice_lcand *lcand,
 		tiebrk = attr->v.uint64;
 	}
 
+	if (remote_role == ICE_ROLE_UNKNOWN)
+		goto badmsg;
+
 	if (remote_role == icem->lrole) {
 		DEBUG_NOTICE("role conflict detected (both %s)\n",
 			     ice_role2name(remote_role));
