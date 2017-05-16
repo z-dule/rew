@@ -97,7 +97,8 @@ static void pair_established(struct trice *icem, struct ice_candpair *pair,
  */
 static void handle_success(struct trice *icem, struct ice_candpair *pair,
 			   const struct sa *mapped_addr,
-			   const struct stun_msg *msg)
+			   const struct stun_msg *msg,
+			   struct ice_conncheck *cc)
 {
 	unsigned compid = pair->lcand->attr.compid;
 	int err;
@@ -161,6 +162,13 @@ static void handle_success(struct trice *icem, struct ice_candpair *pair,
 	pair->state = ICE_CANDPAIR_FROZEN;
 	trice_candpair_make_valid(icem, pair);
 
+	/* Updating the Nominated Flag */
+	if (ICE_ROLE_CONTROLLING == icem->lrole) {
+
+		if (cc->use_cand)
+			pair->nominated = true;
+	}
+
 	pair_established(icem, pair, msg);
 }
 
@@ -218,7 +226,7 @@ static void stunc_resp_handler(int err, uint16_t scode, const char *reason,
 			break;
 		}
 
-		handle_success(icem, pair, &attr->v.sa, msg);
+		handle_success(icem, pair, &attr->v.sa, msg, cc);
 		break;
 
 	case 487: /* Role Conflict */
