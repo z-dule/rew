@@ -53,6 +53,7 @@ OK - Firefox 31.0
 OK - Firefox 35.0
 OK - Firefox 36.0
 OK - Chrome 41
+OK - Chrome 58
 
 
 TODO:
@@ -79,6 +80,13 @@ done - move use_cand flag to checklist_start/send_conncheck ?
 
 
 
+Architecture Diagram:
+--------------------
+
+
+
+```
+
   .-------.                  .-------. 
   |  App  |                  |  App  |
   '-------'                  '-------'
@@ -98,3 +106,4 @@ done - move use_cand flag to checklist_start/send_conncheck ?
 
 
 
+```
