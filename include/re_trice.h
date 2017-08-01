@@ -7,6 +7,7 @@
 
 /** ICE Configuration */
 struct trice_conf {
+	enum ice_nomination nom;/**< Nomination algorithm                  */
 	bool debug;             /**< Enable ICE debugging                  */
 	bool trace;             /**< Enable tracing of Connectivity checks */
 	bool ansi;              /**< Enable ANSI colors for debug output   */
@@ -145,7 +146,7 @@ int  trice_candpairs_debug(struct re_printf *pf, bool ansi_output,
 /* ICE checklist */
 void trice_checklist_set_waiting(struct trice *icem);
 int  trice_checklist_start(struct trice *icem, struct stun *stun,
-			   uint32_t interval, bool use_cand,
+			   uint32_t interval,
 			   trice_estab_h *estabh, trice_failed_h *failh,
 			   void *arg);
 void trice_checklist_stop(struct trice *icem);

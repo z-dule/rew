@@ -47,7 +47,7 @@ static void pace_timeout(void *arg)
 
 
 int trice_checklist_start(struct trice *icem, struct stun *stun,
-			  uint32_t interval, bool use_cand,
+			  uint32_t interval,
 			  trice_estab_h *estabh, trice_failed_h *failh,
 			  void *arg)
 {
@@ -99,7 +99,6 @@ int trice_checklist_start(struct trice *icem, struct stun *stun,
 
 	ic->interval = interval;
 	ic->icem = icem;
-	ic->use_cand = use_cand;
 	ic->estabh = estabh;
 	ic->failh  = failh;
 	ic->arg    = arg;
@@ -159,14 +158,34 @@ bool trice_checklist_iscompleted(const struct trice *icem)
 void trice_conncheck_schedule_check(struct trice *icem)
 {
 	struct ice_candpair *pair;
+	bool use_cand;
 	int err = 0;
+
+	if (!icem)
+		return;
+
+	switch (icem->conf.nom) {
+
+	case ICE_NOMINATION_REGULAR:
+		use_cand = false;
+		break;
+
+	case ICE_NOMINATION_AGGRESSIVE:
+		use_cand = true;
+		break;
+
+	default:
+		DEBUG_WARNING("schedule_check: invalid nomination %d\n",
+			      icem->conf.nom);
+		return;
+	}
 
 	/* Find the highest priority pair in that check list that is in the
 	   Waiting state. */
 	pair = trice_candpair_find_state(&icem->checkl, ICE_CANDPAIR_WAITING);
 	if (pair) {
 		err = trice_conncheck_send(icem, pair,
-					  icem->checklist->use_cand);
+					  use_cand);
 		if (err)
 			trice_candpair_failed(pair, err, 0);
 		return;
@@ -183,7 +202,7 @@ void trice_conncheck_schedule_check(struct trice *icem)
 		   Perform a check for that pair, causing its state to
 		   transition to In-Progress. */
 		err = trice_conncheck_send(icem, pair,
-					  icem->checklist->use_cand);
+					  use_cand);
 		if (err)
 			trice_candpair_failed(pair, err, 0);
 		return;

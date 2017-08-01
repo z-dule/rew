@@ -20,7 +20,6 @@ struct ice_checklist {
 	struct stun *stun;           /**< STUN Transport                     */
 	struct list conncheckl;
 	bool is_running;             /**< Checklist is running               */
-	bool use_cand;
 
 	/* callback handlers */
 	trice_estab_h *estabh;
