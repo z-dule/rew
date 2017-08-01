@@ -23,6 +23,7 @@
 
 
 static const struct trice_conf conf_default = {
+	ICE_NOMINATION_REGULAR,
 	false,
 	false,
 	false,
