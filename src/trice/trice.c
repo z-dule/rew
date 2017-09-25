@@ -222,7 +222,7 @@ static void trice_reqbuf_process(struct trice *icem)
 
 /**
  * Set the local role to either CONTROLLING or CONTROLLED.
- * Note: The role cannot be changed manually after it has been set.
+ * Note: The role can be set multiple times.
  *
  * @param icem ICE Media object
  * @param role New local role
@@ -231,6 +231,8 @@ static void trice_reqbuf_process(struct trice *icem)
  */
 int trice_set_role(struct trice *trice, enum ice_role role)
 {
+	bool refresh;
+
 	if (!trice)
 		return EINVAL;
 
@@ -242,13 +244,22 @@ int trice_set_role(struct trice *trice, enum ice_role role)
 		return 0;
 
 	/* Cannot switch role manually once it has been set */
-	if (trice->lrole != ICE_ROLE_UNKNOWN)
-		return EINVAL;
+	if (trice->lrole == ICE_ROLE_UNKNOWN)
+		refresh = false;
+	else
+		refresh = true;
 
 	trice->lrole = role;
 
 	/* Create candidate pairs and process pending requests */
-	trice_create_candpairs(trice);
+	if (refresh) {
+		trice_candpair_prio_order(&trice->checkl,
+					  role == ICE_ROLE_CONTROLLING);
+	}
+	else {
+		trice_create_candpairs(trice);
+	}
+
 	trice_reqbuf_process(trice);
 
 	return 0;
