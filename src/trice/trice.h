@@ -60,6 +60,12 @@ struct trice {
 	struct list connl;           /**< TCP-connections for all components */
 
 	char *sw;
+
+	/* Port range */
+	struct {
+		int min;
+		int max;
+	} ports; 
 };
 
 

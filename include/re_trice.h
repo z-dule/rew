@@ -157,3 +157,6 @@ bool trice_checklist_iscompleted(const struct trice *icem);
 /* ICE Conncheck */
 int trice_conncheck_send(struct trice *icem, struct ice_candpair *pair,
 			bool use_cand);
+
+/* Port range */
+int trice_set_port_range(struct trice *trice, int min_port, int max_port);

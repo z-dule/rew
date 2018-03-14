@@ -533,3 +533,12 @@ int trice_reqbuf_append(struct trice *icem, struct ice_lcand *lcand,
 
 	return 0;
 }
+
+int trice_set_port_range(struct trice *trice, int min_port, int max_port)
+{
+	if (!trice || !min_port || !max_port)
+		return EINVAL;
+
+	trice->ports.min = min_port;
+	trice->ports.max = max_port;
+}
