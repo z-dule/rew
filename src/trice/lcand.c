@@ -205,7 +205,7 @@ static int udp_listen_range(struct udp_sock **usp, const struct sa *ip,
 	int err = 0;
 
 	sa_cpy(&laddr, ip);
-	
+
 	/* try hard */
 	while (tries--) {
 		struct udp_sock *us;
@@ -325,7 +325,8 @@ int trice_lcand_add(struct ice_lcand **lcandp, struct trice *icem,
 				}
 				else {
 					err = udp_listen(&lcand->us, addr,
-							 dummy_udp_recv, lcand);
+							 dummy_udp_recv,
+							 lcand);
 				}
 				if (err)
 					goto out;

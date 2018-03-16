@@ -542,7 +542,7 @@ int trice_set_port_range(struct trice *trice,
 
 	if (max_port < min_port)
 		return ERANGE;
-	
+
 	trice->ports.min = min_port;
 	trice->ports.max = max_port;
 
