@@ -159,4 +159,5 @@ int trice_conncheck_send(struct trice *icem, struct ice_candpair *pair,
 			bool use_cand);
 
 /* Port range */
-int trice_set_port_range(struct trice *trice, int min_port, int max_port);
+int trice_set_port_range(struct trice *trice,
+			 uint16_t min_port, uint16_t max_port);

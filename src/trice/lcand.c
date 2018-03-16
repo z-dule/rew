@@ -197,7 +197,7 @@ static void dummy_udp_recv(const struct sa *src, struct mbuf *mb, void *arg)
 }
 
 static int udp_listen_range(struct udp_sock **usp, const struct sa *ip,
-			    int min_port, int max_port,
+			    uint16_t min_port, uint16_t max_port,
 			    udp_recv_h *rh, void *arg)
 {
 	struct sa laddr;
@@ -208,19 +208,19 @@ static int udp_listen_range(struct udp_sock **usp, const struct sa *ip,
 	
 	/* try hard */
 	while (tries--) {
-		struct udp_sock *us_rtp;
+		struct udp_sock *us;
 		uint16_t port;
 
 		port = (min_port + (rand_u16() % (max_port - min_port)));
 
 		sa_set_port(&laddr, port);
-		err = udp_listen(&us_rtp, &laddr, rh, arg);
+		err = udp_listen(&us, &laddr, rh, arg);
 		if (err)
 			continue;
 
 		/* OK */
 		if (usp)
-			*usp = us_rtp;
+			*usp = us;
 		break;
 	}
 
