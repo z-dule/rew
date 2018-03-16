@@ -63,9 +63,9 @@ struct trice {
 
 	/* Port range */
 	struct {
-		int min;
-		int max;
-	} ports; 
+		uint16_t min;
+		uint16_t max;
+	} ports;
 };
 
 
